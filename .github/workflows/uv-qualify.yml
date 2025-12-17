@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_call:
+    inputs:
+      python-version:
+        required: true
+        type: string
+        default: "3.13"
 
 permissions:
   contents: read # minimal: checkout only
@@ -29,6 +34,7 @@ jobs:
         with:
           files: |
             **/*.py
+            pyproject.toml
             uv.lock
             mise.toml
 
@@ -45,9 +51,10 @@ jobs:
 
       - name: Set up UV
         if: steps.changed-files.outputs.any_changed == 'true'
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v7
         with:
           version: "0.9.4"
+          python-version: ${{ inputs.python-version || '3.13' }}
 
       - name: Sync dependencies
         if: steps.changed-files.outputs.any_changed == 'true'
