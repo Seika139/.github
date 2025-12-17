@@ -14,7 +14,7 @@ on:
           - patch
 
 jobs:
-  call-common-release:
+  common-create-release-branch:
     uses: Seika139/.github/.github/workflows/update-version.yml@main
     with:
       version_bump: ${{ inputs.version_bump }}

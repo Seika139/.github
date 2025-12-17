@@ -6,6 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  call-common-qualify:
+  call-common-uv-qualify:
     uses: Seika139/.github/.github/workflows/uv-qualify.yml@main
     secrets: inherit
