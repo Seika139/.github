@@ -110,7 +110,7 @@ jobs:
 
       - name: Update version in README
         run: |
-          python3 .github/scripts/update_readme_version.py \
+          python .github-config/.github/scripts/update_readme_version.py \
             --readme README.md \
             --version "$RELEASE_VERSION" \
             --repo ${{ github.repository }}
