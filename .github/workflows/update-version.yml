@@ -45,10 +45,12 @@ jobs:
           fetch-depth: 1
           token: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN || github.token }}
 
-      - name: Install uv
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install uv
+      - name: Set up UV
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          version: "0.9.4"
+          python-version: "3.13"
 
       - name: Determine next version
         run: |
