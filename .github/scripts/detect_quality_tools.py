@@ -7,7 +7,7 @@ import json
 import os
 import pathlib
 import re
-import tomllib
+import tomllib  # このモジュールは Python 3.11 以降で利用可能です。
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
