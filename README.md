@@ -22,6 +22,5 @@ This directory contains GitHub-specific files, such as issue and pull request te
 - ユーザーの Settings > Developer Settings で Personal Access Token (classic) を作成する
   - 権限は repo, workflow, write:packages
 - 作成したトークンを控えておく
-- .github リポジトリの Settings > Secrets and variables > Actions を開いて Repository Secrets を追加する
+- 呼び出す側のリポジトリの Settings > Secrets and variables > Actions を開いて Repository Secrets を追加する
   - Name に `PUSH_AND_RUN_WORKFLOW_TOKEN` を、Value に先程控えたトークンを張り付けて登録する
-- 同様に呼び出す側のリポジトリにも `PUSH_AND_RUN_WORKFLOW_TOKEN` を登録する
