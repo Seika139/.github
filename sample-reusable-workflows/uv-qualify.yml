@@ -1,0 +1,11 @@
+name: Qualify Code based on uv (reusable)
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  call-common-qualify:
+    uses: Seika139/.github/.github/workflows/uv-qualify.yml@main
+    secrets: inherit

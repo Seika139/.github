@@ -1,0 +1,104 @@
+name: Lint Markdown
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+    inputs:
+      markdown_glob:
+        description: "Glob pattern for markdown files"
+        required: false
+        default: "**/*.md"
+        type: string
+    secrets:
+      PUSH_AND_RUN_WORKFLOW_TOKEN:
+        required: false
+
+permissions:
+  contents: write # allow pushing auto-fix commits to PR branches
+  pull-requests: read # read PR metadata for head ref
+
+env:
+  NODE_VERSION: "24"
+  MARKDOWNLINT_CONFIG: .github-config/.github/config/.markdownlint-cli2.jsonc
+  MARKDOWN_GLOB: ${{ inputs.markdown_glob || '**/*.md' }}
+
+jobs:
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout shared .github config
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/.github
+          path: .github-config
+          fetch-depth: 1
+          token: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN || github.token }}
+
+      - name: Detect markdown changes
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            ${{ env.MARKDOWN_GLOB }}
+
+      - name: Skip checks (no markdown changes)
+        if: steps.changed-files.outputs.any_changed != 'true'
+        run: echo "No markdown changes detected; skipping linting."
+
+      - name: Setup Node.js
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install markdownlint-cli2
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: npm install -g markdownlint-cli2
+
+      - name: Run markdownlint with auto-fix (PR only)
+        if: steps.changed-files.outputs.any_changed == 'true' && github.event_name == 'pull_request'
+        run: |
+          if [ -f "$MARKDOWNLINT_CONFIG" ]; then
+            markdownlint-cli2 --config "$MARKDOWNLINT_CONFIG" --fix "$MARKDOWN_GLOB" || true
+          else
+            markdownlint-cli2 --fix "$MARKDOWN_GLOB" || true
+          fi
+
+      - name: Check for modifications (PR only)
+        if: steps.changed-files.outputs.any_changed == 'true' && github.event_name == 'pull_request'
+        id: git-check
+        run: |
+          git diff --exit-code || echo "modified=true" >> $GITHUB_OUTPUT
+
+      - name: Commit auto-fixes (PR only)
+        # github-actions[bot] がプッシュした再実行ではコミットしないことでループを防ぐ
+        if: steps.changed-files.outputs.any_changed == 'true' && github.event_name == 'pull_request' && steps.git-check.outputs.modified == 'true' && github.actor != 'github-actions[bot]'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          # Bash の globstar が無効だと "**/*.md" は 1 階層しか拾えずルート直下の .md を取りこぼす。
+          # git のパススペック展開に任せるためクォートして渡し、ルート直下も含むよう '*.md' も追加。
+          git add -- '**/*.md' '*.md'
+          git commit -m "fix: auto-fix markdown lint issues"
+
+      - name: Push changes (PR only)
+        if: steps.changed-files.outputs.any_changed == 'true' && github.event_name == 'pull_request' && steps.git-check.outputs.modified == 'true' && github.actor != 'github-actions[bot]'
+        uses: ad-m/github-push-action@v0.8.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.head_ref }}
+
+      - name: Run markdownlint (check only)
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          if [ -f "$MARKDOWNLINT_CONFIG" ]; then
+            markdownlint-cli2 --config "$MARKDOWNLINT_CONFIG" "$MARKDOWN_GLOB"
+          else
+            markdownlint-cli2 "$MARKDOWN_GLOB"
+          fi

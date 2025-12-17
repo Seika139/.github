@@ -1,0 +1,156 @@
+name: Build Library
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      publish_package:
+        type: boolean
+        default: false
+        description: "true にすると GitHub Packages への publish を実行"
+  workflow_call:
+    inputs:
+      publish_package:
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read # checkout
+  packages: write # publish to GitHub Packages
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Detect relevant changes
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            pyproject.toml
+            CHANGELOG.md
+
+      - name: Decide whether to run build steps
+        id: run-checks
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          set -euo pipefail
+          py_changed=false
+          changelog_changed=false
+
+          if [[ -n "${CHANGED_FILES:-}" ]]; then
+            set -f
+            for file in ${CHANGED_FILES}; do
+              case "$file" in
+                pyproject.toml)
+                  py_changed=true
+                  ;;
+                CHANGELOG.md)
+                  changelog_changed=true
+                  ;;
+              esac
+            done
+            set +f
+          fi
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$py_changed" == true && "$changelog_changed" == true ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_EVENT_NAME}" == "push" && "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Decide whether to publish package
+        id: publish-check
+        if: steps.run-checks.outputs.run == 'true'
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REF: ${{ github.ref }}
+          WORKFLOW_PUBLISH_INPUT: ${{ github.event.inputs.publish_package || 'false' }}
+        run: |
+          set -euo pipefail
+          should_publish=false
+          release_tag=""
+
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            force="${WORKFLOW_PUBLISH_INPUT:-false}"
+            if [[ "${force,,}" == "true" ]]; then
+              should_publish=true
+            fi
+          fi
+
+          if [[ "$GITHUB_EVENT_NAME" == "push" && "$GITHUB_REF" == refs/tags/* ]]; then
+            should_publish=true
+            release_tag="${GITHUB_REF#refs/tags/}"
+          fi
+
+          git fetch --tags --force >/dev/null 2>&1 || true
+          tag_on_head="$(git tag --points-at HEAD | grep '^v' | head -n1 || true)"
+          if [[ -n "$tag_on_head" ]]; then
+            should_publish=true
+            release_tag="$tag_on_head"
+          fi
+
+          if [[ -n "$release_tag" ]]; then
+            echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
+          fi
+          echo "publish=$should_publish" >> "$GITHUB_OUTPUT"
+
+      - name: Skip checks (no relevant changes)
+        if: steps.run-checks.outputs.run != 'true'
+        run: echo "No relevant changes detected; skipping quality checks."
+
+      - name: Set up UV
+        if: steps.run-checks.outputs.run == 'true'
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.9.4"
+
+      - name: Sync dependencies
+        if: steps.run-checks.outputs.run == 'true'
+        run: uv sync --frozen
+
+      - name: Run tests
+        if: steps.run-checks.outputs.run == 'true'
+        run: uv run pytest
+
+      - name: Build wheel
+        if: steps.run-checks.outputs.run == 'true'
+        run: uv build --wheel
+
+      - name: Upload wheel artifact
+        if: steps.run-checks.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: spark-rag-core-wheel
+          path: dist/*.whl
+
+      - name: Publish to GitHub Packages
+        if: steps.run-checks.outputs.run == 'true' && steps.publish-check.outputs.publish == 'true'
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.UV_PUBLISH_TOKEN }}
+          UV_PUBLISH_URL: https://pip.pkg.github.com/Seika139/
+        run: |
+          set -euo pipefail
+          if [ -z "$UV_PUBLISH_TOKEN" ]; then
+            echo "UV_PUBLISH_TOKEN is not configured; aborting publish."
+            exit 1
+          fi
+          uv publish \
+            --token "$UV_PUBLISH_TOKEN" \
+            --publish-url "$UV_PUBLISH_URL"

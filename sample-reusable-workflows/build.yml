@@ -1,0 +1,21 @@
+name: Build Library (reusable)
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      publish_package:
+        type: boolean
+        default: false
+        description: "true にすると GitHub Packages への publish を実行"
+
+jobs:
+  call-common-build:
+    uses: Seika139/.github/.github/workflows/build.yml@main
+    with:
+      publish_package: ${{ inputs.publish_package }}
+    secrets: inherit

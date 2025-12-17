@@ -1,0 +1,81 @@
+name: Qualify Code based on uv
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read # minimal: checkout only
+
+jobs:
+  ruff-mypy-pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout shared .github scripts
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/.github
+          path: .github-config
+          fetch-depth: 1
+          token: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN || github.token }}
+
+      - name: Detect relevant changes
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            **/*.py
+            uv.lock
+            mise.toml
+
+      - name: Skip checks (no relevant changes)
+        if: steps.changed-files.outputs.any_changed != 'true'
+        run: echo "No Python or dependency changes detected; skipping quality checks."
+
+      # 自身のprivateリポジトリからパッケージを取得する場合の認証設定
+      - name: Configure git auth
+        run: |
+          git config --global url."https://${TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+        env:
+          TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
+
+      - name: Set up UV
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.9.4"
+
+      - name: Sync dependencies
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: uv sync --frozen --all-extras
+
+      - name: Detect available quality tools
+        id: detect-tools
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: uv run python .github-config/.github/scripts/detect_quality_tools.py --pyproject pyproject.toml
+
+      - name: Decide mypy target
+        id: mypy-target
+        if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.mypy == 'true'
+        run: uv run python .github-config/.github/scripts/decide_mypy_target.py --pyproject pyproject.toml
+
+      - name: Run ruff check
+        if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.ruff == 'true'
+        run: uv run ruff check .
+
+      - name: Run mypy
+        if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.mypy == 'true'
+        run: |
+          if [[ "${{ steps.mypy-target.outputs.use_dot }}" == "true" ]]; then
+            uv run mypy .
+          else
+            uv run mypy
+          fi
+
+      - name: Run pytest
+        if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.pytest == 'true'
+        run: uv run pytest tests/
