@@ -59,6 +59,7 @@ jobs:
             --bump "$VERSION_BUMP" \
             --env-file "$GITHUB_ENV"
 
+      # リリース日を日本時間で設定する
       - name: Set release date
         run: echo "RELEASE_DATE=$(date +%Y-%m-%d)" >> "$GITHUB_ENV"
         env:
