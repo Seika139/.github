@@ -56,7 +56,7 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: astral-sh/setup-uv@v7
         with:
-          version: "0.9.4"
+          version: "0.9.22"
           python-version: ${{ inputs.python-version || '3.13' }}
 
       - name: Sync dependencies
