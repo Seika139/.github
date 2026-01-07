@@ -45,7 +45,17 @@ jobs:
           fetch-depth: 1
           token: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN || github.token }}
 
+      - name: Check for pyproject.toml
+        id: check_pyproject
+        run: |
+            if [ -f "pyproject.toml" ]; then
+              echo "exists=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "exists=false" >> "$GITHUB_OUTPUT"
+            fi
+
       - name: Set up UV
+        if: steps.check_pyproject.outputs.exists == 'true'
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
@@ -88,6 +98,7 @@ jobs:
           git switch --create "$RELEASE_BRANCH" "origin/main"
 
       - name: Update pyproject version
+        if: steps.check_pyproject.outputs.exists == 'true'
         run: |
           python .github-config/.github/scripts/update_pyproject_version.py \
             --pyproject pyproject.toml \
@@ -99,6 +110,7 @@ jobs:
           git config --global url."https://x-access-token:${PUSH_AND_RUN_WORKFLOW_TOKEN}@github.com/".insteadOf "https://github.com/"
 
       - name: Update lockfile
+        if: steps.check_pyproject.outputs.exists == 'true'
         run: uv lock
 
       - name: Update changelog
@@ -122,7 +134,12 @@ jobs:
 
       - name: Commit changes
         run: |
-          git add $(ls pyproject.toml CHANGELOG.md uv.lock README.md 2>/dev/null)
+          # 存在するファイルのみ git add する
+          for f in pyproject.toml CHANGELOG.md uv.lock README.md; do
+            if [ -f "$f" ]; then
+              git add "$f"
+            fi
+          done
           git commit -m "chore: prepare release $RELEASE_VERSION"
 
       - name: Create annotated tag

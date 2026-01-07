@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import pathlib
 import re
+import shutil
+import subprocess  # noqa: S404
 import sys
 
 VERSION_PATTERN = re.compile(r'(?m)^version\s*=\s*"([^"]+)"')
@@ -10,7 +12,7 @@ VERSION_PATTERN = re.compile(r'(?m)^version\s*=\s*"([^"]+)"')
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="pyproject.toml の現在バージョンを読み込み、"
+        description="pyproject.toml または Git タグから現在バージョンを読み込み、"
         "次バージョンを計算します。"
     )
     parser.add_argument(
@@ -32,17 +34,46 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def read_current_version(path: pathlib.Path) -> str:
-    if not path.exists():
-        print(f"{path} が見つかりません。", file=sys.stderr)
-        raise SystemExit(1)
-    match = VERSION_PATTERN.search(path.read_text(encoding="utf-8"))
-    if not match:
-        print(
-            f"{path} 内の version フィールドを特定できませんでした。", file=sys.stderr
+def get_latest_tag() -> str | None:
+    git_path = shutil.which("git")
+    if not git_path:
+        return None
+
+    try:
+        # v* 形式のタグを取得する
+        result = subprocess.run(  # noqa: S603
+            [git_path, "tag", "--list", "v*", "--sort=-v:refname"],
+            capture_output=True,
+            text=True,
+            check=True,
         )
-        raise SystemExit(1)
-    return match.group(1)
+        tags = result.stdout.strip().split("\n")
+        if tags and tags[0]:
+            # v1.2.3 -> 1.2.3
+            tag = tags[0]
+            if tag.startswith("v"):
+                return tag[1:]
+            return tag
+    except (subprocess.SubprocessError, FileNotFoundError):
+        pass
+    return None
+
+
+def read_current_version(path: pathlib.Path) -> str:
+    # 1. pyproject.toml からの取得を試みる
+    if path.exists():
+        content = path.read_text(encoding="utf-8")
+        match = VERSION_PATTERN.search(content)
+        if match:
+            return match.group(1)
+
+    # 2. Git タグからの取得を試みる
+    tag_version = get_latest_tag()
+    if tag_version:
+        return tag_version
+
+    # 3. デフォルト
+    return "0.0.0"
 
 
 def bump_version(current: str, bump: str) -> str:
