@@ -48,11 +48,11 @@ jobs:
       - name: Check for pyproject.toml
         id: check_pyproject
         run: |
-            if [ -f "pyproject.toml" ]; then
-              echo "exists=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "exists=false" >> "$GITHUB_OUTPUT"
-            fi
+          if [ -f "pyproject.toml" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Set up UV
         if: steps.check_pyproject.outputs.exists == 'true'
