@@ -1,4 +1,4 @@
-name: Qualify Code based on uv (reusable)
+name: Qualify Code (reusable)
 
 on:
   push:

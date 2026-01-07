@@ -7,12 +7,19 @@ requires-python = ">=3.13"
 dependencies = []
 
 [dependency-groups]
-dev = ["mypy>=1.19.1", "ruff>=0.14.9"]
+dev = [
+  "mypy>=1.19.1",
+  "ruff>=0.14.9",
+  "pytest>=8.3.4",
+  "vulture>=2.14",
+  "ty>=0.0.8",
+]
 
 [tool.ruff]
 line-length = 88
 target-version = "py313"
 preview = true
+extend-exclude = ["sample_scripts/**"]
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -46,3 +53,13 @@ convention = "google"
 python_version = "3.13"
 strict = true
 files = [".github/scripts"]
+exclude = ["sample_scripts/"]
+
+[tool.ty.environment]
+extra-paths = [".github/scripts"]
+
+[tool.ty.src]
+exclude = ["sample_scripts/"]
+
+[tool.pytest.ini_options]
+pythonpath = [".github/scripts"]

@@ -10,12 +10,18 @@ on:
     inputs:
       publish_package:
         type: boolean
-        default: false
+        default: true
         description: "true にすると GitHub Packages への publish を実行"
+
+permissions:
+  actions: read # 再利用ワークフローの取得に必要
+  contents: read # 再利用ワークフロー参照・チェックアウト用
+  packages: write # 再利用先での uv publish 用
 
 jobs:
   call-common-build:
     uses: Seika139/.github/.github/workflows/build.yml@main
     with:
-      publish_package: ${{ inputs.publish_package }}
+      # workflow_dispatch 時は指定された値をそのまま使用し、push 時は true にフォールバック
+      publish_package: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publish_package || github.event_name != 'workflow_dispatch' && true }}
     secrets: inherit

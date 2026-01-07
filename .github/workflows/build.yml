@@ -76,7 +76,7 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_REF: ${{ github.ref }}
-          WORKFLOW_PUBLISH_INPUT: ${{ github.event.inputs.publish_package || 'false' }}
+          WORKFLOW_PUBLISH_INPUT: ${{ inputs.publish_package || 'false' }}
         run: |
           set -euo pipefail
           should_publish=false
@@ -139,7 +139,7 @@ jobs:
         if: steps.run-checks.outputs.run == 'true' && steps.publish-check.outputs.publish == 'true'
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.UV_PUBLISH_TOKEN }}
-          UV_PUBLISH_URL: https://pip.pkg.github.com/Seika139/
+          UV_PUBLISH_URL: https://pypi.pkg.github.com/${{ github.repository }}/
         run: |
           set -euo pipefail
           if [ -z "$UV_PUBLISH_TOKEN" ]; then

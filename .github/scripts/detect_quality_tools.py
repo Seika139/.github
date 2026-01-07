@@ -34,7 +34,13 @@ def collect_dependencies(data: Mapping[str, Any]) -> set[str]:
 
 
 def detect_tools(pyproject_path: pathlib.Path) -> dict[str, bool]:
-    tools = {"ruff": False, "mypy": False, "pytest": False}
+    tools = {
+        "ruff": False,
+        "mypy": False,
+        "pytest": False,
+        "vulture": False,
+        "ty": False,
+    }
 
     if not pyproject_path.exists():
         print(f"{pyproject_path} not found; disabling all quality tools")

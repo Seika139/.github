@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import argparse
+import os
 import pathlib
 import re
+import shutil
 import sys
+from subprocess import CalledProcessError, check_output  # noqa: S404
 
 
 def parse_args() -> argparse.Namespace:
@@ -69,7 +72,72 @@ def _normalize_blank_lines(text: str) -> str:
     return "".join(lines)
 
 
-def _update_tagged_releases(text: str, version: str) -> str:  # noqa: PLR0912 C901
+def _infer_base_url_from_text(text: str) -> str | None:
+    """CHANGELOG から GitHub リポジトリのベース URL を推測する。
+
+    Returns:
+        ベース URL を表す文字列。推測できなければ None。
+    """
+    match = re.search(r"https?://github\.com/[^/\s)]+/[^/\s)]+", text)
+    if match:
+        return match.group(0).rstrip("/")
+    return None
+
+
+def _infer_base_url_from_env() -> str | None:
+    """環境変数や git 設定から GitHub ベース URL を推測する。
+
+    Returns:
+        ベース URL を表す文字列。推測できなければ None。
+    """
+    repo = os.environ.get("GITHUB_REPOSITORY")
+    if repo:
+        return f"https://github.com/{repo}".rstrip("/")
+
+    git_path = shutil.which("git")
+    if not git_path:
+        return None
+
+    try:
+        remote = check_output(  # noqa: S603
+            [git_path, "config", "--get", "remote.origin.url"], text=True
+        ).strip()
+    except (CalledProcessError, FileNotFoundError):
+        remote = ""
+
+    if not remote:
+        return None
+
+    # git@github.com:owner/repo(.git)?
+    ssh_match = re.match(
+        r"git@[^:]+:(?P<owner>[^/]+)/(?P<repo>[^/]+?)(?:\.git)?$", remote
+    )
+    if ssh_match:
+        return (
+            f"https://github.com/{ssh_match.group('owner')}/{ssh_match.group('repo')}"
+        )
+
+    # https://github.com/owner/repo(.git)?
+    https_match = re.match(
+        r"https?://[^/]+/(?P<owner>[^/]+)/(?P<repo>[^/]+?)(?:\.git)?$", remote
+    )
+    if https_match:
+        return f"https://github.com/{https_match.group('owner')}/{https_match.group('repo')}"
+
+    return None
+
+
+def _render_tagged_body(entries: list[tuple[str, str]]) -> str:
+    lines = [f"- [{label}]({url})\n" for label, url in entries]
+    body = "\n" + "".join(lines)
+    if not body.endswith("\n"):
+        body += "\n"
+    if not body.endswith("\n\n"):
+        body += "\n"
+    return body
+
+
+def _update_tagged_releases(text: str, version: str) -> str:  # noqa: PLR0911 PLR0912 C901
     """`## Tagged Releases` の差分リンクを最新タグにあわせて更新する。
 
     期待するフォーマット:
@@ -97,6 +165,19 @@ def _update_tagged_releases(text: str, version: str) -> str:  # noqa: PLR0912 C9
         m = entry_re.match(line.strip())
         if m:
             entries.append((m.group(1), m.group(2)))
+
+    if len(entries) == 0:
+        base_url = _infer_base_url_from_env() or _infer_base_url_from_text(text)
+        if not base_url:
+            return text
+
+        prefix = "v"
+        new_entries = [
+            ("unreleased", f"{base_url}/compare/{prefix}{version}...HEAD"),
+            (version, f"{base_url}/releases/tag/{prefix}{version}"),
+        ]
+        new_body = _render_tagged_body(new_entries)
+        return text[: match.start("body")] + new_body + text[match.end("body") :]
 
     # 未リリース + 1件の既存リリースが必要
     if len(entries) < 2:  # noqa: PLR2004
@@ -144,13 +225,7 @@ def _update_tagged_releases(text: str, version: str) -> str:  # noqa: PLR0912 C9
         (label, url) for label, url in entries if label.lower() != "unreleased"
     )
 
-    lines = [f"- [{label}]({url})\n" for label, url in new_entries]
-    new_body = "\n" + "".join(lines)
-    if not new_body.endswith("\n"):
-        new_body += "\n"
-    if not new_body.endswith("\n\n"):
-        new_body += "\n"
-
+    new_body = _render_tagged_body(new_entries)
     return text[: match.start("body")] + new_body + text[match.end("body") :]
 
 

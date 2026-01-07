@@ -1,4 +1,4 @@
-name: Qualify Code based on uv
+name: Qualify Code
 
 on:
   push:
@@ -15,6 +15,9 @@ permissions:
 
 jobs:
   ruff-mypy-pytest:
+    # Dependabot の GITHUB_TOKEN は org 配下別リポジトリ (.github) を読めず checkout が 404 になる。
+    # Dependabot 実行時はジョブをスキップ（成功扱い）して落ちないようにする。
+    if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -82,6 +85,23 @@ jobs:
           else
             uv run mypy
           fi
+
+      - name: Run ty
+        if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.ty == 'true'
+        # この .github ディレクトリを checkout している .github-config を ty check から除外して実行する
+        run: uv run ty check . --exclude ".github-config/**"
+
+      # vulture の導入を検討しているが、100%検知ができるわけではないので一旦保留
+      # - name: Run vulture (unused code)
+      #   if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.vulture == 'true'
+      #   run: |
+      #     paths=""
+      #     [ -d src ] && paths="$paths src"
+      #     [ -d tests ] && paths="$paths tests"
+      #     if [ -z "$paths" ]; then
+      #       paths="."
+      #     fi
+      #     uv run vulture $paths --min-confidence 80 --exclude alembic
 
       - name: Run pytest
         if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.pytest == 'true'

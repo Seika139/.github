@@ -1,0 +1,46 @@
+name: API Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/api_docs.py" # 生成スクリプト
+      - "src/**/*.py" # スキーマに影響するコード
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/api-docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  api-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect doc-related changes
+        id: diff
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            scripts/api_docs.py
+            src/**/*.py
+            pyproject.toml
+            uv.lock
+            .github/workflows/api-docs.yml
+
+      - name: Skip if no doc changes
+        if: steps.diff.outputs.any_changed != 'true'
+        run: echo "No doc changes; skipping." && exit 0
+
+      - name: Call reusable API docs workflow
+        uses: ${{ github.repository_owner }}/.github/.github/workflows/api-docs.yml@main
+        with:
+          script-path: scripts/api_docs.py # スクリプトパスを各リポの実態に合わせて変更
+          output-dir: docs/public # 出力先を合わせる
+          deploy-pages: true # Pages デプロイが不要なら false に

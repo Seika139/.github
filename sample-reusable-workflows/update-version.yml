@@ -1,4 +1,4 @@
-name: Update Version and Create Release Branch (reusable)
+name: Update Version (reusable)
 
 on:
   workflow_dispatch:

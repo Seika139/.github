@@ -1,0 +1,84 @@
+name: Build API Docs
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        required: false
+        type: string
+        default: "3.13"
+      script-path:
+        required: false
+        type: string
+        default: "scripts/api_docs.py"
+      script-args:
+        required: false
+        type: string
+        default: ""
+      output-dir:
+        required: false
+        type: string
+        default: "docs/public"
+      deploy-pages:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      github-token:
+        required: false
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 自身のprivateリポジトリからパッケージを取得する場合の認証設定
+      - name: Configure git auth
+        run: |
+          git config --global url."https://${TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+        env:
+          TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
+
+      - name: Set up UV
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.4"
+          python-version: ${{ inputs.python-version }}
+
+      - name: Sync dependencies
+        run: uv sync --frozen --all-extras
+
+      - name: Build API docs
+        run: uv run python ${{ inputs.script-path }} ${{ inputs.script-args }}
+
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-docs
+          path: ${{ inputs.output-dir }}
+
+      - name: Upload Pages artifact
+        if: inputs.deploy-pages == true
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ inputs.output-dir }}
+
+  deploy-pages:
+    if: inputs.deploy-pages == true
+    needs: build-docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

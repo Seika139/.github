@@ -25,6 +25,9 @@ env:
 
 jobs:
   markdownlint:
+    # Dependabot の GITHUB_TOKEN は org 配下別リポジトリ (.github) を読めず checkout が 404 になる。
+    # Dependabot 実行時はジョブをスキップ（成功扱い）して落ちないようにする。
+    if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -84,7 +87,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           # Bash の globstar が無効だと "**/*.md" は 1 階層しか拾えずルート直下の .md を取りこぼす。
           # git のパススペック展開に任せるためクォートして渡し、ルート直下も含むよう '*.md' も追加。
-          git add -- '**/*.md' '*.md'
+          git ls-files -o -m --exclude-standard -- "**/*.md" "*.md" | xargs -r git add
           git commit -m "fix: auto-fix markdown lint issues"
 
       - name: Push changes (PR only)
