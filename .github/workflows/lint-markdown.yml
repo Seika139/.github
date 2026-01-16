@@ -25,18 +25,15 @@ env:
 
 jobs:
   markdownlint:
-    # Dependabot の GITHUB_TOKEN は org 配下別リポジトリ (.github) を読めず checkout が 404 になる。
-    # Dependabot 実行時はジョブをスキップ（成功扱い）して落ちないようにする。
-    if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Checkout shared .github config
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository_owner }}/.github
           path: .github-config
@@ -45,7 +42,7 @@ jobs:
 
       - name: Detect markdown changes
         id: changed-files
-        uses: tj-actions/changed-files@v45
+        uses: tj-actions/changed-files@v47
         with:
           files: |
             ${{ env.MARKDOWN_GLOB }}
@@ -56,7 +53,7 @@ jobs:
 
       - name: Setup Node.js
         if: steps.changed-files.outputs.any_changed == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 

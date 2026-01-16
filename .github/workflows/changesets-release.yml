@@ -1,0 +1,365 @@
+name: Changesets Release
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      workdir:
+        description: "Working directory for the package"
+        required: false
+        type: string
+        default: "."
+      node_version:
+        description: "Node.js version"
+        required: false
+        type: string
+        default: "24"
+      pnpm_version:
+        description: "pnpm version"
+        required: false
+        type: string
+        default: "10.27.0"
+      yarn_version:
+        description: "yarn version (only used when package_manager=yarn)"
+        required: false
+        type: string
+        default: "4.12.0"
+      package_manager:
+        description: "Package manager to use (pnpm|yarn|npm). If not set, auto-detect by lockfile."
+        required: false
+        type: string
+        default: ""
+      normalize_changelog_script:
+        description: "Path to normalize-changelog script (relative to workdir). Empty to skip."
+        required: false
+        type: string
+        default: ""
+      base_branch:
+        description: "Base branch for release PR"
+        required: false
+        type: string
+        default: "main"
+    secrets:
+      PUSH_AND_RUN_WORKFLOW_TOKEN:
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      WORKDIR: ${{ inputs.workdir }}
+      BASE_BRANCH: ${{ inputs.base_branch }}
+      PNPM_VERSION: ${{ inputs.pnpm_version }}
+      YARN_VERSION: ${{ inputs.yarn_version }}
+      PUSH_TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN || github.token }}
+      SKIP_RELEASE: "false"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check pending changesets
+        run: |
+          set -euo pipefail
+          count="$(find "$WORKDIR/.changeset" -maxdepth 1 -name '*.md' ! -name 'README.md' 2>/dev/null | wc -l | tr -d ' ')"
+          if [ "${count:-0}" -eq 0 ]; then
+            echo "No pending changesets. Skipping release steps."
+            echo "SKIP_RELEASE=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Detect package manager
+        id: detect
+        run: |
+          set -euo pipefail
+          pm="${{ inputs.package_manager }}"
+          if [ -z "$pm" ]; then
+            if [ -f "$WORKDIR/pnpm-lock.yaml" ]; then
+              pm="pnpm"
+            elif [ -f "$WORKDIR/yarn.lock" ]; then
+              pm="yarn"
+            elif [ -f "$WORKDIR/package-lock.json" ]; then
+              pm="npm"
+            else
+              pm="pnpm"  # default fallback
+            fi
+          fi
+
+          case "$pm" in
+            pnpm)
+              lockfile="pnpm-lock.yaml"
+              install_cmd="pnpm install --frozen-lockfile"
+              post_install_cmd="pnpm install"
+              changeset_cmd="pnpm run changeset version"
+              ;;
+            yarn)
+              lockfile="yarn.lock"
+              install_cmd="yarn install --frozen-lockfile"
+              post_install_cmd="yarn install"
+              changeset_cmd="yarn changeset version"
+              ;;
+            npm)
+              lockfile="package-lock.json"
+              install_cmd="npm ci"
+              post_install_cmd="npm install"
+              changeset_cmd="npx changeset version"
+              ;;
+            *)
+              echo "Unsupported package manager: $pm"
+              exit 1
+              ;;
+          esac
+
+          echo "PM=$pm" >> "$GITHUB_ENV"
+          echo "LOCKFILE=$lockfile" >> "$GITHUB_ENV"
+          echo "INSTALL_CMD=$install_cmd" >> "$GITHUB_ENV"
+          echo "POST_INSTALL_CMD=$post_install_cmd" >> "$GITHUB_ENV"
+          echo "CHANGESET_CMD=$changeset_cmd" >> "$GITHUB_ENV"
+          echo "pm=$pm" >> "$GITHUB_OUTPUT"
+          echo "lockfile=$lockfile" >> "$GITHUB_OUTPUT"
+
+      - name: Enable package manager via corepack
+        if: env.SKIP_RELEASE != 'true' && (env.PM == 'pnpm' || env.PM == 'yarn')
+        run: |
+          set -euo pipefail
+          corepack enable
+          if [ "${PM}" = "pnpm" ]; then
+            corepack prepare pnpm@${PNPM_VERSION} --activate
+          else
+            corepack prepare yarn@${YARN_VERSION} --activate
+          fi
+
+      - name: Fallback install pnpm globally
+        if: env.SKIP_RELEASE != 'true' && env.PM == 'pnpm'
+        run: |
+          set -euo pipefail
+          if ! command -v pnpm >/dev/null 2>&1; then
+            npm i -g pnpm@${PNPM_VERSION}
+          fi
+
+      - name: Fallback install yarn globally
+        if: env.SKIP_RELEASE != 'true' && env.PM == 'yarn'
+        run: |
+          set -euo pipefail
+          if ! command -v yarn >/dev/null 2>&1; then
+            npm i -g yarn@${YARN_VERSION}
+          fi
+
+      - name: Setup Node.js
+        if: env.SKIP_RELEASE != 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: Install dependencies
+        if: env.SKIP_RELEASE != 'true'
+        working-directory: ${{ env.WORKDIR }}
+        run: $INSTALL_CMD
+
+      - name: Apply changesets (version & changelog)
+        if: env.SKIP_RELEASE != 'true'
+        working-directory: ${{ env.WORKDIR }}
+        run: $CHANGESET_CMD
+        env:
+          GITHUB_TOKEN: ${{ env.PUSH_TOKEN || github.token }}
+
+      - name: Normalize changelog format
+        if: env.SKIP_RELEASE != 'true' && inputs.normalize_changelog_script != ''
+        working-directory: ${{ env.WORKDIR }}
+        run: |
+          script_path="${{ inputs.normalize_changelog_script }}"
+          if [ -f "$script_path" ]; then
+            node "$script_path"
+          else
+            echo "normalize-changelog script not found at $script_path. Skip."
+          fi
+
+      - name: Lint changelog (markdownlint-cli2)
+        if: env.SKIP_RELEASE != 'true'
+        working-directory: ${{ env.WORKDIR }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- CHANGELOG.md; then
+            echo "CHANGELOG.md is unchanged. Skip markdownlint."
+            exit 0
+          fi
+          case "${PM}" in
+            pnpm)
+              pnpm dlx markdownlint-cli2 CHANGELOG.md
+              ;;
+            yarn)
+              yarn dlx markdownlint-cli2 CHANGELOG.md
+              ;;
+            npm)
+              npx markdownlint-cli2 CHANGELOG.md
+              ;;
+            *)
+              echo "Unsupported package manager: ${PM}"
+              exit 1
+              ;;
+          esac
+
+      - name: Update lockfile
+        if: env.SKIP_RELEASE != 'true'
+        working-directory: ${{ env.WORKDIR }}
+        run: $POST_INSTALL_CMD
+
+      - name: Determine version
+        id: version
+        if: env.SKIP_RELEASE != 'true'
+        working-directory: ${{ env.WORKDIR }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "RELEASE_TAG=v$VERSION" >> "$GITHUB_ENV"
+          echo "RELEASE_BRANCH=release/v$VERSION" >> "$GITHUB_ENV"
+
+      - name: Configure git
+        if: env.SKIP_RELEASE != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Ensure release refs do not exist
+        if: env.SKIP_RELEASE != 'true'
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code origin "refs/heads/$RELEASE_BRANCH" >/dev/null 2>&1; then
+            echo "Release branch $RELEASE_BRANCH already exists. Skipping."
+            echo "SKIP_RELEASE=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          if git ls-remote --exit-code origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release tag $RELEASE_TAG already exists. Skipping."
+            echo "SKIP_RELEASE=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+      - name: Create release branch
+        if: env.SKIP_RELEASE != 'true'
+        run: |
+          git switch --create "$RELEASE_BRANCH"
+
+      - name: Commit version files
+        if: env.SKIP_RELEASE != 'true'
+        run: |
+          set -euo pipefail
+          for f in package.json pnpm-lock.yaml CHANGELOG.md; do
+            if [ -f "$WORKDIR/$f" ]; then
+              git add "$WORKDIR/$f"
+            fi
+          done
+          if [ -d "$WORKDIR/.changeset" ]; then
+            git add "$WORKDIR/.changeset"
+          fi
+          if git diff --cached --quiet; then
+            echo "No changes to commit (likely no pending changesets). Skipping release steps."
+            echo "SKIP_RELEASE=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          git commit -m "chore: release v${{ steps.version.outputs.version }}"
+
+      - name: Create annotated tag
+        if: env.SKIP_RELEASE != 'true'
+        run: git tag -a "$RELEASE_TAG" -m "Release ${{ steps.version.outputs.version }}"
+
+      - name: Push branch and tag
+        if: env.SKIP_RELEASE != 'true'
+        env:
+          PUSH_TOKEN: ${{ env.PUSH_TOKEN }}
+        run: |
+          git remote set-url origin "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "$RELEASE_BRANCH"
+          git push origin "$RELEASE_TAG"
+
+      - name: Create pull request
+        if: env.SKIP_RELEASE != 'true'
+        env:
+          GH_TOKEN: ${{ env.PUSH_TOKEN }}
+        run: |
+          set -euo pipefail
+          body="## 概要\n- Release version: ${{ steps.version.outputs.version }}\n- Tag: $RELEASE_TAG\n- Branch: $RELEASE_BRANCH\n"
+          echo -e "$body" | tee /tmp/pr_body.md
+          gh pr create \
+            --base "$BASE_BRANCH" \
+            --head "$RELEASE_BRANCH" \
+            --title "chore: release v${{ steps.version.outputs.version }}" \
+            --body-file /tmp/pr_body.md
+          pr_number="$(gh pr view --head "$RELEASE_BRANCH" --template '{{.Number}}' 2>/dev/null || true)"
+          if [ -n "$pr_number" ]; then
+            echo "PR_NUMBER=$pr_number" >> "$GITHUB_ENV"
+          else
+            echo "Warning: could not determine PR number for branch $RELEASE_BRANCH"
+          fi
+          rm /tmp/pr_body.md
+
+      - name: Cleanup tag on failure
+        if: failure() && env.RELEASE_TAG != '' && env.SKIP_RELEASE != 'true'
+        continue-on-error: true
+        env:
+          PUSH_AND_RUN_WORKFLOW_TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
+          DEFAULT_GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          if git tag --list "$RELEASE_TAG" | grep -q .; then
+            git tag -d "$RELEASE_TAG" && echo "Deleted local tag $RELEASE_TAG"
+          else
+            echo "Local tag $RELEASE_TAG not found; skip local deletion."
+          fi
+
+          token="${PUSH_AND_RUN_WORKFLOW_TOKEN:-$DEFAULT_GITHUB_TOKEN}"
+          if [ -z "$token" ]; then
+            echo "No token available to delete remote tag; skipping remote deletion."
+            exit 0
+          fi
+
+          git remote set-url origin "https://x-access-token:${token}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            git push origin ":refs/tags/$RELEASE_TAG" && echo "Deleted remote tag $RELEASE_TAG" || echo "Failed to delete remote tag $RELEASE_TAG"
+          else
+            echo "Remote tag $RELEASE_TAG not found; skip remote deletion."
+          fi
+
+      - name: Cleanup branch on failure
+        if: failure() && env.RELEASE_BRANCH != '' && env.SKIP_RELEASE != 'true'
+        continue-on-error: true
+        env:
+          PUSH_AND_RUN_WORKFLOW_TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
+          DEFAULT_GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          git switch --detach >/dev/null 2>&1 || true
+
+          if git show-ref --verify --quiet "refs/heads/$RELEASE_BRANCH"; then
+            git branch -D "$RELEASE_BRANCH" && echo "Deleted local branch $RELEASE_BRANCH"
+          else
+            echo "Local branch $RELEASE_BRANCH not found; skip local deletion."
+          fi
+
+          token="${PUSH_AND_RUN_WORKFLOW_TOKEN:-$DEFAULT_GITHUB_TOKEN}"
+          if [ -z "$token" ]; then
+            echo "No token available to delete remote branch; skipping remote deletion."
+            exit 0
+          fi
+
+          git remote set-url origin "https://x-access-token:${token}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code origin "refs/heads/$RELEASE_BRANCH" >/dev/null 2>&1; then
+            git push origin ":refs/heads/$RELEASE_BRANCH" && echo "Deleted remote branch $RELEASE_BRANCH" || echo "Failed to delete remote branch $RELEASE_BRANCH"
+          else
+            echo "Remote branch $RELEASE_BRANCH not found; skip remote deletion."
+          fi
+
+      - name: Close PR on failure
+        if: failure() && env.PR_NUMBER != '' && env.SKIP_RELEASE != 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN || github.token }}
+        run: |
+          set -euo pipefail
+          gh pr close "$PR_NUMBER" --comment "Release workflow failed; closing PR and cleaning up."

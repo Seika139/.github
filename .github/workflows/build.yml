@@ -23,14 +23,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           fetch-tags: true
 
       - name: Detect relevant changes
         id: changed-files
-        uses: tj-actions/changed-files@v45
+        uses: tj-actions/changed-files@v47
         with:
           files: |
             pyproject.toml
@@ -112,9 +112,9 @@ jobs:
 
       - name: Set up UV
         if: steps.run-checks.outputs.run == 'true'
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v7
         with:
-          version: "0.9.4"
+          version: "0.9.26"
 
       - name: Sync dependencies
         if: steps.run-checks.outputs.run == 'true'
@@ -130,7 +130,7 @@ jobs:
 
       - name: Upload wheel artifact
         if: steps.run-checks.outputs.run == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: spark-rag-core-wheel
           path: dist/*.whl

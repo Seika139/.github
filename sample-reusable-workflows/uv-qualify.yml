@@ -16,4 +16,9 @@ jobs:
     uses: Seika139/.github/.github/workflows/uv-qualify.yml@main
     with:
       python-version: ${{ matrix.python-version }}
+      # dotenvx を使う場合の例:
+      # dotenvx-env-file: ".env.production"
     secrets: inherit
+    # dotenvx を使う場合の例:
+    # secrets:
+    #   DOTENV_PRIVATE_KEY: ${{ secrets.DOTENV_PRIVATE_KEY }}

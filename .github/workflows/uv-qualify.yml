@@ -9,22 +9,27 @@ on:
         required: true
         type: string
         default: "3.13"
+      dotenvx-env-file:
+        description: "dotenvx で扱う環境変数ファイル（未指定/存在しない場合はスキップ）"
+        required: false
+        type: string
+        default: ".env"
+    secrets:
+      DOTENV_PRIVATE_KEY:
+        required: false
 
 permissions:
   contents: read # minimal: checkout only
 
 jobs:
   ruff-mypy-pytest:
-    # Dependabot の GITHUB_TOKEN は org 配下別リポジトリ (.github) を読めず checkout が 404 になる。
-    # Dependabot 実行時はジョブをスキップ（成功扱い）して落ちないようにする。
-    if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Checkout shared .github scripts
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository_owner }}/.github
           path: .github-config
@@ -33,7 +38,7 @@ jobs:
 
       - name: Detect relevant changes
         id: changed-files
-        uses: tj-actions/changed-files@v45
+        uses: tj-actions/changed-files@v47
         with:
           files: |
             **/*.py
@@ -52,11 +57,59 @@ jobs:
         env:
           TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
 
+      - name: Detect dotenvx encrypted env file
+        id: dotenvx
+        if: steps.changed-files.outputs.any_changed == 'true'
+        env:
+          DOTENV_PRIVATE_KEY: ${{ secrets.DOTENV_PRIVATE_KEY }}
+        run: |
+          ENV_FILE_INPUT="${{ inputs['dotenvx-env-file'] || '.env' }}"
+          if [ -z "$ENV_FILE_INPUT" ] || [ ! -f "$ENV_FILE_INPUT" ]; then
+            echo "DOTENVX_RUN_PREFIX=" >> "$GITHUB_ENV"
+            echo "encrypted=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! grep -Eq 'DOTENV_PUBLIC_KEY|encrypted:' "$ENV_FILE_INPUT"; then
+            echo "DOTENVX_RUN_PREFIX=" >> "$GITHUB_ENV"
+            echo "encrypted=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -z "$DOTENV_PRIVATE_KEY" ]; then
+            echo "DOTENV_PRIVATE_KEY secret is required to decrypt $ENV_FILE_INPUT." >&2
+            exit 1
+          fi
+
+          if ! command -v npx >/dev/null 2>&1; then
+            echo "npx is required to run dotenvx in this workflow." >&2
+            exit 1
+          fi
+
+          base="$(basename "$ENV_FILE_INPUT")"
+          suffix=""
+          if [ "$base" = ".env" ]; then
+            suffix=""
+          elif [[ "$base" == .env.* ]]; then
+            suffix="${base#.env.}"
+          fi
+
+          if [ -n "$suffix" ]; then
+            suffix="$(echo "$suffix" | tr '[:lower:]' '[:upper:]' | tr '.-' '_' | tr -c 'A-Z0-9_' '_')"
+            key_name="DOTENV_PRIVATE_KEY_${suffix}"
+          else
+            key_name="DOTENV_PRIVATE_KEY"
+          fi
+
+          echo "$key_name=$DOTENV_PRIVATE_KEY" >> "$GITHUB_ENV"
+          echo "DOTENVX_RUN_PREFIX=npx --yes @dotenvx/dotenvx run -f $ENV_FILE_INPUT --" >> "$GITHUB_ENV"
+          echo "encrypted=true" >> "$GITHUB_OUTPUT"
+
       - name: Set up UV
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: astral-sh/setup-uv@v7
         with:
-          version: "0.9.22"
+          version: "0.9.26"
           python-version: ${{ inputs.python-version || '3.13' }}
 
       - name: Sync dependencies
@@ -66,30 +119,30 @@ jobs:
       - name: Detect available quality tools
         id: detect-tools
         if: steps.changed-files.outputs.any_changed == 'true'
-        run: uv run python .github-config/.github/scripts/detect_quality_tools.py --pyproject pyproject.toml
+        run: $DOTENVX_RUN_PREFIX uv run python .github-config/.github/scripts/detect_quality_tools.py --pyproject pyproject.toml
 
       - name: Decide mypy target
         id: mypy-target
         if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.mypy == 'true'
-        run: uv run python .github-config/.github/scripts/decide_mypy_target.py --pyproject pyproject.toml
+        run: $DOTENVX_RUN_PREFIX uv run python .github-config/.github/scripts/decide_mypy_target.py --pyproject pyproject.toml
 
       - name: Run ruff check
         if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.ruff == 'true'
-        run: uv run ruff check .
+        run: $DOTENVX_RUN_PREFIX uv run ruff check .
 
       - name: Run mypy
         if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.mypy == 'true'
         run: |
           if [[ "${{ steps.mypy-target.outputs.use_dot }}" == "true" ]]; then
-            uv run mypy .
+            $DOTENVX_RUN_PREFIX uv run mypy .
           else
-            uv run mypy
+            $DOTENVX_RUN_PREFIX uv run mypy
           fi
 
       - name: Run ty
         if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.ty == 'true'
         # この .github ディレクトリを checkout している .github-config を ty check から除外して実行する
-        run: uv run ty check . --exclude ".github-config/**"
+        run: $DOTENVX_RUN_PREFIX uv run ty check . --exclude ".github-config/**"
 
       # vulture の導入を検討しているが、100%検知ができるわけではないので一旦保留
       # - name: Run vulture (unused code)
@@ -105,4 +158,4 @@ jobs:
 
       - name: Run pytest
         if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.pytest == 'true'
-        run: uv run pytest tests/
+        run: $DOTENVX_RUN_PREFIX uv run pytest tests/

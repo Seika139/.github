@@ -1,0 +1,14 @@
+name: Changesets Release (Reusable)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    uses: Seika139/.github/.github/workflows/changesets-release.yml@main
+    with:
+      workdir: .
+      base_branch: main
+      package_manager: pnpm
+    secrets:
+      PUSH_AND_RUN_WORKFLOW_TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
