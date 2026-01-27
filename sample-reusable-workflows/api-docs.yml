@@ -1,6 +1,7 @@
+---
 name: API Docs
 
-on:
+"on":
   push:
     branches: [main]
     paths:

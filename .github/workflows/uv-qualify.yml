@@ -1,6 +1,7 @@
+---
 name: Qualify Code
 
-on:
+"on":
   push:
   pull_request:
   workflow_call:
@@ -21,6 +22,7 @@ on:
 permissions:
   contents: read # minimal: checkout only
 
+# yamllint disable rule:line-length
 jobs:
   ruff-mypy-pytest:
     runs-on: ubuntu-latest
@@ -142,7 +144,7 @@ jobs:
       - name: Run ty
         if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.ty == 'true'
         # この .github ディレクトリを checkout している .github-config を ty check から除外して実行する
-        run: $DOTENVX_RUN_PREFIX uv run ty check . --exclude ".github-config/**"
+        run: $DOTENVX_RUN_PREFIX uv run ty check . --error-on-warning --exclude ".github-config/**"
 
       # vulture の導入を検討しているが、100%検知ができるわけではないので一旦保留
       # - name: Run vulture (unused code)

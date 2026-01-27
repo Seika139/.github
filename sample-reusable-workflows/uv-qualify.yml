@@ -1,6 +1,7 @@
+---
 name: Qualify Code (reusable)
 
-on:
+"on":
   push:
   pull_request:
   workflow_dispatch:

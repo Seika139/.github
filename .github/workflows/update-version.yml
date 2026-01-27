@@ -1,6 +1,7 @@
+---
 name: Update Version
 
-on:
+"on":
   workflow_dispatch:
     inputs:
       version_bump:
@@ -24,6 +25,7 @@ permissions:
   contents: write # create branch/tag and push commits
   pull-requests: write # open release PRs
 
+# yamllint disable rule:line-length
 jobs:
   create-release-branch:
     name: Create release branch and tag

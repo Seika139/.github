@@ -1,6 +1,7 @@
+---
 name: Lint Markdown
 
-on:
+"on":
   push:
   pull_request:
   workflow_call:
@@ -78,7 +79,11 @@ jobs:
 
       - name: Commit auto-fixes (PR only)
         # github-actions[bot] がプッシュした再実行ではコミットしないことでループを防ぐ
-        if: steps.changed-files.outputs.any_changed == 'true' && github.event_name == 'pull_request' && steps.git-check.outputs.modified == 'true' && github.actor != 'github-actions[bot]'
+        if: >-
+          steps.changed-files.outputs.any_changed == 'true'
+          && github.event_name == 'pull_request'
+          && steps.git-check.outputs.modified == 'true'
+          && github.actor != 'github-actions[bot]'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -88,7 +93,11 @@ jobs:
           git commit -m "fix: auto-fix markdown lint issues"
 
       - name: Push changes (PR only)
-        if: steps.changed-files.outputs.any_changed == 'true' && github.event_name == 'pull_request' && steps.git-check.outputs.modified == 'true' && github.actor != 'github-actions[bot]'
+        if: >-
+          steps.changed-files.outputs.any_changed == 'true'
+          && github.event_name == 'pull_request'
+          && steps.git-check.outputs.modified == 'true'
+          && github.actor != 'github-actions[bot]'
         uses: ad-m/github-push-action@v0.8.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

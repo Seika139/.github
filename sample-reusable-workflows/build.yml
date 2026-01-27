@@ -1,6 +1,7 @@
+---
 name: Build Library (reusable)
 
-on:
+"on":
   push:
     branches:
       - main
@@ -23,5 +24,6 @@ jobs:
     uses: Seika139/.github/.github/workflows/build.yml@main
     with:
       # workflow_dispatch 時は指定された値をそのまま使用し、push 時は true にフォールバック
+      # yamllint disable-line rule:line-length
       publish_package: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publish_package || github.event_name != 'workflow_dispatch' && true }}
     secrets: inherit

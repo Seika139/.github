@@ -1,6 +1,7 @@
+---
 name: Changesets Release
 
-on:
+"on":
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -47,6 +48,7 @@ permissions:
   contents: write
   pull-requests: write
 
+# yamllint disable rule:line-length
 jobs:
   release:
     runs-on: ubuntu-latest

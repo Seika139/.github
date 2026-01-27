@@ -1,6 +1,7 @@
+---
 name: Build API Docs
 
-on:
+"on":
   workflow_call:
     inputs:
       python-version:

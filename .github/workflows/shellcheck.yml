@@ -1,0 +1,45 @@
+---
+name: shellcheck
+
+"on":
+  push:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read # minimal: checkout only
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    env:
+      # 呼び出し元リポジトリの設定ファイル（存在すれば使用、なくても自動検索される）
+      SHELLCHECK_CONFIG: .shellcheckrc
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Detect relevant changes
+        id: changed-files
+        uses: tj-actions/changed-files@v47
+        with:
+          files: |
+            **/*.sh
+            **/*.bash
+
+      - name: Skip checks (no relevant changes)
+        if: steps.changed-files.outputs.any_changed != 'true'
+        run: echo "No shell script changes detected; skipping shellcheck."
+
+      - name: Run shellcheck
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          # 全ての .sh, .bash ファイルを検索して shellcheck を実行
+          # -x: source されたスクリプトも追跡
+          # -P SCRIPTDIR: スクリプトのディレクトリから相対パスを解決
+          opts="-x -P SCRIPTDIR"
+          if [ -f "$SHELLCHECK_CONFIG" ]; then
+            opts="$opts --rcfile $SHELLCHECK_CONFIG"
+          fi
+          find . -type f \( -name "*.sh" -o -name "*.bash" \) -exec shellcheck $opts {} +

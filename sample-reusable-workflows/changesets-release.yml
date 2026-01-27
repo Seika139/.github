@@ -1,6 +1,7 @@
+---
 name: Changesets Release (Reusable)
 
-on:
+"on":
   workflow_dispatch:
 
 jobs:

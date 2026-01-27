@@ -1,6 +1,7 @@
+---
 name: Update Version (reusable)
 
-on:
+"on":
   workflow_dispatch:
     inputs:
       version_bump:
