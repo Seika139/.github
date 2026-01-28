@@ -23,9 +23,48 @@ permissions:
   contents: read # minimal: checkout only
 
 # yamllint disable rule:line-length
+# ============================================================================
+# ジョブ構成の概要
+# ============================================================================
+# このワークフローは以下の3つのジョブで構成されています：
+#
+#   setup ─────┬──→ lint-and-test (ruff, ty, pytest を順次実行)
+#              │
+#              └──→ mypy (並列実行)
+#
+# mypy は他のツールに比べて実行時間が長いため、別ジョブに分離して並列実行する
+# ことで、全体の実行時間を短縮しています。
+#
+# 実行時間の目安：
+#   - 元の構成（順次実行）: setup + ruff + ty + mypy + pytest
+#   - 新しい構成（並列実行）: setup + max(lint-and-test, mypy)
+#
+# ============================================================================
 jobs:
-  ruff-mypy-pytest:
+  # ==========================================================================
+  # setup ジョブ
+  # ==========================================================================
+  # 変更ファイルの検出、利用可能なツールの検出を行い、
+  # その結果を outputs として後続ジョブに渡す。
+  # GITHUB_ENV はジョブ内でしか有効でないため、ジョブ間のデータ共有には
+  # outputs を使用する必要がある。
+  setup:
     runs-on: ubuntu-latest
+    # 後続ジョブに渡す情報
+    # - any_changed: Python関連ファイルに変更があったか（false なら後続ジョブはスキップ）
+    # - ruff/mypy/ty/pytest: 各ツールがプロジェクトで利用可能か
+    # - mypy_use_dot: mypy を "mypy ." で実行するか "mypy" で実行するか
+    # - dotenvx_run_prefix: 暗号化された.envファイルを復号するためのコマンドプレフィックス
+    # - dotenvx_key_name: 復号に使用する環境変数名（DOTENV_PRIVATE_KEY または DOTENV_PRIVATE_KEY_XXX）
+    outputs:
+      any_changed: ${{ steps.changed-files.outputs.any_changed }}
+      ruff: ${{ steps.detect-tools.outputs.ruff }}
+      mypy: ${{ steps.detect-tools.outputs.mypy }}
+      mypy_use_dot: ${{ steps.mypy-target.outputs.use_dot }}
+      ty: ${{ steps.detect-tools.outputs.ty }}
+      pytest: ${{ steps.detect-tools.outputs.pytest }}
+      dotenvx_run_prefix: ${{ steps.dotenvx.outputs.run_prefix }}
+      dotenvx_key_name: ${{ steps.dotenvx.outputs.key_name || '_UNUSED_DOTENV_KEY' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -67,14 +106,16 @@ jobs:
         run: |
           ENV_FILE_INPUT="${{ inputs['dotenvx-env-file'] || '.env' }}"
           if [ -z "$ENV_FILE_INPUT" ] || [ ! -f "$ENV_FILE_INPUT" ]; then
-            echo "DOTENVX_RUN_PREFIX=" >> "$GITHUB_ENV"
-            echo "encrypted=false" >> "$GITHUB_OUTPUT"
+            echo "run_prefix=" >> "$GITHUB_OUTPUT"
+            # env の動的キーに空文字列を指定すると GitHub Actions がエラーになるため、
+            # 使用しない場合でも有効なキー名を設定する（値は空なので影響なし）
+            echo "key_name=_UNUSED_DOTENV_KEY" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           if ! grep -Eq 'DOTENV_PUBLIC_KEY|encrypted:' "$ENV_FILE_INPUT"; then
-            echo "DOTENVX_RUN_PREFIX=" >> "$GITHUB_ENV"
-            echo "encrypted=false" >> "$GITHUB_OUTPUT"
+            echo "run_prefix=" >> "$GITHUB_OUTPUT"
+            echo "key_name=_UNUSED_DOTENV_KEY" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -103,9 +144,8 @@ jobs:
             key_name="DOTENV_PRIVATE_KEY"
           fi
 
-          echo "$key_name=$DOTENV_PRIVATE_KEY" >> "$GITHUB_ENV"
-          echo "DOTENVX_RUN_PREFIX=npx --yes @dotenvx/dotenvx run -f $ENV_FILE_INPUT --" >> "$GITHUB_ENV"
-          echo "encrypted=true" >> "$GITHUB_OUTPUT"
+          echo "run_prefix=npx --yes @dotenvx/dotenvx run -f $ENV_FILE_INPUT --" >> "$GITHUB_OUTPUT"
+          echo "key_name=$key_name" >> "$GITHUB_OUTPUT"
 
       - name: Set up UV
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -121,34 +161,96 @@ jobs:
       - name: Detect available quality tools
         id: detect-tools
         if: steps.changed-files.outputs.any_changed == 'true'
-        run: $DOTENVX_RUN_PREFIX uv run python .github-config/.github/scripts/detect_quality_tools.py --pyproject pyproject.toml
+        run: |
+          if [ -n "${{ steps.dotenvx.outputs.run_prefix }}" ]; then
+            ${{ steps.dotenvx.outputs.run_prefix }} uv run python .github-config/.github/scripts/detect_quality_tools.py --pyproject pyproject.toml
+          else
+            uv run python .github-config/.github/scripts/detect_quality_tools.py --pyproject pyproject.toml
+          fi
+        env:
+          ${{ steps.dotenvx.outputs.key_name || '_UNUSED_DOTENV_KEY' }}: ${{ secrets.DOTENV_PRIVATE_KEY }}
 
       - name: Decide mypy target
         id: mypy-target
         if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.mypy == 'true'
-        run: $DOTENVX_RUN_PREFIX uv run python .github-config/.github/scripts/decide_mypy_target.py --pyproject pyproject.toml
-
-      - name: Run ruff check
-        if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.ruff == 'true'
-        run: $DOTENVX_RUN_PREFIX uv run ruff check .
-
-      - name: Run mypy
-        if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.mypy == 'true'
         run: |
-          if [[ "${{ steps.mypy-target.outputs.use_dot }}" == "true" ]]; then
-            $DOTENVX_RUN_PREFIX uv run mypy .
+          if [ -n "${{ steps.dotenvx.outputs.run_prefix }}" ]; then
+            ${{ steps.dotenvx.outputs.run_prefix }} uv run python .github-config/.github/scripts/decide_mypy_target.py --pyproject pyproject.toml
           else
-            $DOTENVX_RUN_PREFIX uv run mypy
+            uv run python .github-config/.github/scripts/decide_mypy_target.py --pyproject pyproject.toml
           fi
+        env:
+          ${{ steps.dotenvx.outputs.key_name || '_UNUSED_DOTENV_KEY' }}: ${{ secrets.DOTENV_PRIVATE_KEY }}
+
+  # ==========================================================================
+  # lint-and-test ジョブ
+  # ==========================================================================
+  # ruff, ty, pytest を順次実行する。
+  # これらのツールは実行時間が短い（数秒〜数十秒）ため、ジョブを分割する
+  # オーバーヘッド（チェックアウト、依存関係インストール）に見合わないので、
+  # 1つのジョブにまとめている。
+  #
+  # mypy ジョブと並列で実行される。
+  lint-and-test:
+    needs: setup
+    if: needs.setup.outputs.any_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Checkout shared .github scripts
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.repository_owner }}/.github
+          path: .github-config
+          fetch-depth: 1
+          token: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN || github.token }}
+
+      - name: Configure git auth
+        run: |
+          git config --global url."https://${TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+        env:
+          TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
+
+      - name: Set up UV
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.26"
+          python-version: ${{ inputs.python-version || '3.13' }}
+
+      - name: Sync dependencies
+        run: uv sync --frozen --all-extras
+
+      # dotenvx_run_prefix が設定されている場合は、暗号化された .env を復号してから実行する。
+      # env の動的キー (${{ needs.setup.outputs.dotenvx_key_name || '_UNUSED_DOTENV_KEY' }}) は GitHub Actions の機能で、
+      # setup ジョブで決定された環境変数名（DOTENV_PRIVATE_KEY または DOTENV_PRIVATE_KEY_XXX）を使用する。
+      - name: Run ruff check
+        if: needs.setup.outputs.ruff == 'true'
+        run: |
+          if [ -n "${{ needs.setup.outputs.dotenvx_run_prefix }}" ]; then
+            ${{ needs.setup.outputs.dotenvx_run_prefix }} uv run ruff check .
+          else
+            uv run ruff check .
+          fi
+        env:
+          ${{ needs.setup.outputs.dotenvx_key_name || '_UNUSED_DOTENV_KEY' }}: ${{ secrets.DOTENV_PRIVATE_KEY }}
 
       - name: Run ty
-        if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.ty == 'true'
+        if: needs.setup.outputs.ty == 'true'
         # この .github ディレクトリを checkout している .github-config を ty check から除外して実行する
-        run: $DOTENVX_RUN_PREFIX uv run ty check . --error-on-warning --exclude ".github-config/**"
+        run: |
+          if [ -n "${{ needs.setup.outputs.dotenvx_run_prefix }}" ]; then
+            ${{ needs.setup.outputs.dotenvx_run_prefix }} uv run ty check . --error-on-warning --exclude ".github-config/**"
+          else
+            uv run ty check . --error-on-warning --exclude ".github-config/**"
+          fi
+        env:
+          ${{ needs.setup.outputs.dotenvx_key_name || '_UNUSED_DOTENV_KEY' }}: ${{ secrets.DOTENV_PRIVATE_KEY }}
 
       # vulture の導入を検討しているが、100%検知ができるわけではないので一旦保留
       # - name: Run vulture (unused code)
-      #   if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.vulture == 'true'
+      #   if: needs.setup.outputs.vulture == 'true'
       #   run: |
       #     paths=""
       #     [ -d src ] && paths="$paths src"
@@ -159,5 +261,62 @@ jobs:
       #     uv run vulture $paths --min-confidence 80 --exclude alembic
 
       - name: Run pytest
-        if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.pytest == 'true'
-        run: $DOTENVX_RUN_PREFIX uv run pytest tests/
+        if: needs.setup.outputs.pytest == 'true'
+        run: |
+          if [ -n "${{ needs.setup.outputs.dotenvx_run_prefix }}" ]; then
+            ${{ needs.setup.outputs.dotenvx_run_prefix }} uv run pytest tests/
+          else
+            uv run pytest tests/
+          fi
+        env:
+          ${{ needs.setup.outputs.dotenvx_key_name || '_UNUSED_DOTENV_KEY' }}: ${{ secrets.DOTENV_PRIVATE_KEY }}
+
+  # ==========================================================================
+  # mypy ジョブ
+  # ==========================================================================
+  # mypy は実行時間が長い（数分かかることがある）ため、別ジョブに分離して
+  # lint-and-test ジョブと並列で実行することで、全体の実行時間を短縮する。
+  #
+  # 条件:
+  # - any_changed == 'true': Python関連ファイルに変更がある
+  # - mypy == 'true': プロジェクトで mypy が利用可能
+  mypy:
+    needs: setup
+    if: needs.setup.outputs.any_changed == 'true' && needs.setup.outputs.mypy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Configure git auth
+        run: |
+          git config --global url."https://${TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+        env:
+          TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
+
+      - name: Set up UV
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.26"
+          python-version: ${{ inputs.python-version || '3.13' }}
+
+      - name: Sync dependencies
+        run: uv sync --frozen --all-extras
+
+      - name: Run mypy
+        run: |
+          if [ -n "${{ needs.setup.outputs.dotenvx_run_prefix }}" ]; then
+            if [[ "${{ needs.setup.outputs.mypy_use_dot }}" == "true" ]]; then
+              ${{ needs.setup.outputs.dotenvx_run_prefix }} uv run mypy .
+            else
+              ${{ needs.setup.outputs.dotenvx_run_prefix }} uv run mypy
+            fi
+          else
+            if [[ "${{ needs.setup.outputs.mypy_use_dot }}" == "true" ]]; then
+              uv run mypy .
+            else
+              uv run mypy
+            fi
+          fi
+        env:
+          ${{ needs.setup.outputs.dotenvx_key_name || '_UNUSED_DOTENV_KEY' }}: ${{ secrets.DOTENV_PRIVATE_KEY }}
