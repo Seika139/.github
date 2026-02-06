@@ -71,14 +71,26 @@ resource "github_repository_ruleset" "main" {
   }
 }
 
+# Secrets の設定
+
 variable "DOTENV_PRIVATE_KEY" {
   type      = string
   sensitive = true
 }
 
-# Secrets の設定
 resource "github_actions_secret" "DOTENV_PRIVATE_KEY" {
   repository      = data.github_repository.repo.name
   secret_name     = "DOTENV_PRIVATE_KEY"
   plaintext_value = var.DOTENV_PRIVATE_KEY
+}
+
+variable "PUSH_AND_RUN_WORKFLOW_TOKEN" {
+  type      = string
+  sensitive = true
+}
+
+resource "github_actions_secret" "PUSH_AND_RUN_WORKFLOW_TOKEN" {
+  repository      = data.github_repository.repo.name
+  secret_name     = "PUSH_AND_RUN_WORKFLOW_TOKEN"
+  plaintext_value = var.PUSH_AND_RUN_WORKFLOW_TOKEN
 }
