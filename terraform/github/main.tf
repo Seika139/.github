@@ -18,14 +18,25 @@ variable "github_repository_full_name" {
 }
 
 # 3. 既存のリポジトリを指定
-data "github_repository" "repo" {
-  full_name = var.github_repository_full_name
+import {
+  to = github_repository.repo
+  id = split("/", var.github_repository_full_name)[1]
+}
+
+resource "github_repository" "repo" {
+  name                   = split("/", var.github_repository_full_name)[1]
+  delete_branch_on_merge = true
+  allow_update_branch    = true
+  has_issues             = true
+  has_projects           = true
+  has_wiki               = true
+  vulnerability_alerts   = true
 }
 
 # 4. リポジトリルールセットの設定
 resource "github_repository_ruleset" "main" {
   name        = "main-protection"
-  repository  = data.github_repository.repo.name
+  repository  = github_repository.repo.name
   target      = "branch"
   enforcement = "active"
 
@@ -67,18 +78,42 @@ resource "github_repository_ruleset" "main" {
         context        = "shellcheck"
         integration_id = 15368 # GitHub Apps の固定App ID
       }
+      required_check {
+        context        = "lint-and-test"
+        integration_id = 15368
+      }
+      required_check {
+        context        = "mypy"
+        integration_id = 15368
+      }
+      required_check {
+        context        = "setup"
+        integration_id = 15368
+      }
     }
   }
 }
+
+# Secrets の設定
 
 variable "DOTENV_PRIVATE_KEY" {
   type      = string
   sensitive = true
 }
 
-# Secrets の設定
 resource "github_actions_secret" "DOTENV_PRIVATE_KEY" {
-  repository      = data.github_repository.repo.name
+  repository      = github_repository.repo.name
   secret_name     = "DOTENV_PRIVATE_KEY"
   plaintext_value = var.DOTENV_PRIVATE_KEY
+}
+
+variable "PUSH_AND_RUN_WORKFLOW_TOKEN" {
+  type      = string
+  sensitive = true
+}
+
+resource "github_actions_secret" "PUSH_AND_RUN_WORKFLOW_TOKEN" {
+  repository      = github_repository.repo.name
+  secret_name     = "PUSH_AND_RUN_WORKFLOW_TOKEN"
+  plaintext_value = var.PUSH_AND_RUN_WORKFLOW_TOKEN
 }
