@@ -18,6 +18,11 @@ variable "github_repository_full_name" {
 }
 
 # 3. 既存のリポジトリを指定
+import {
+  to = github_repository.repo
+  id = var.github_repository_full_name
+}
+
 resource "github_repository" "repo" {
   name                   = split("/", var.github_repository_full_name)[1]
   delete_branch_on_merge = true
