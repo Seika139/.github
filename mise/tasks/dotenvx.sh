@@ -24,8 +24,8 @@ if [ ! -f ".env" ]; then
 fi
 
 # .env ファイル内に暗号化されていないシークレットがないかチェック
-# コメント行と空行、'encrypted:'を含む行以外に、何らかの文字があればエラーとする
-if grep -vE '(^#|^$|encrypted:)' .env | grep -q '.'; then
+# コメント行と空行、および、DOTENV_PUBLIC_KEY の行、'encrypted:'を含む行以外に、何らかの文字があればエラーとする
+if grep -vE '(^#|^$|encrypted:|DOTENV_PUBLIC_KEY)' .env | grep -q '.'; then
   echo "Error: Unencrypted secrets found in .env file." >&2
   echo "Please run 'mise run encrypt' to encrypt them." >&2
   exit 1
