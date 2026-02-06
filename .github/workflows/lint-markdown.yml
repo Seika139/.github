@@ -7,7 +7,7 @@ name: Lint Markdown
   workflow_call:
     inputs:
       markdown_glob:
-        description: "Glob pattern for markdown files"
+        description: "Markdownファイルのグロブパターン。注意: ローカル設定ファイル内の 'globs' 設定よりもこちらが優先されます。"
         required: false
         default: "**/*.md"
         type: string
@@ -65,9 +65,23 @@ jobs:
       - name: Run markdownlint with auto-fix (PR only)
         if: steps.changed-files.outputs.any_changed == 'true' && github.event_name == 'pull_request'
         run: |
-          if [ -f "$MARKDOWNLINT_CONFIG" ]; then
+          config_found=false
+          for f in .markdownlint-cli2.jsonc .markdownlint-cli2.yaml .markdownlint-cli2.json .markdownlint-cli2.cjs .markdownlint-cli2.mjs .markdownlint.json .markdownlint.yaml .markdownlint.yml; do
+            if [ -f "$f" ]; then
+              config_found=true
+              break
+            fi
+          done
+
+          if [ "$config_found" = true ]; then
+            echo "Local markdownlint configuration found. Using it."
+            # 注意: コマンドライン引数は設定ファイル内の 'globs' プロパティよりも優先されます。
+            markdownlint-cli2 --fix "$MARKDOWN_GLOB" || true
+          elif [ -f "$MARKDOWNLINT_CONFIG" ]; then
+            echo "Local configuration not found. Using shared configuration: $MARKDOWNLINT_CONFIG"
             markdownlint-cli2 --config "$MARKDOWNLINT_CONFIG" --fix "$MARKDOWN_GLOB" || true
           else
+            echo "No markdownlint configuration found. Using default rules."
             markdownlint-cli2 --fix "$MARKDOWN_GLOB" || true
           fi
 
@@ -106,8 +120,21 @@ jobs:
       - name: Run markdownlint (check only)
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          if [ -f "$MARKDOWNLINT_CONFIG" ]; then
+          config_found=false
+          for f in .markdownlint-cli2.jsonc .markdownlint-cli2.yaml .markdownlint-cli2.json .markdownlint-cli2.cjs .markdownlint-cli2.mjs .markdownlint.json .markdownlint.yaml .markdownlint.yml; do
+            if [ -f "$f" ]; then
+              config_found=true
+              break
+            fi
+          done
+
+          if [ "$config_found" = true ]; then
+            echo "Local markdownlint configuration found. Using it."
+            markdownlint-cli2 "$MARKDOWN_GLOB"
+          elif [ -f "$MARKDOWNLINT_CONFIG" ]; then
+            echo "Local configuration not found. Using shared configuration: $MARKDOWNLINT_CONFIG"
             markdownlint-cli2 --config "$MARKDOWNLINT_CONFIG" "$MARKDOWN_GLOB"
           else
+            echo "No markdownlint configuration found. Using default rules."
             markdownlint-cli2 "$MARKDOWN_GLOB"
           fi

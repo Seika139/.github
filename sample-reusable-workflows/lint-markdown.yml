@@ -5,6 +5,7 @@ name: Lint Markdown (reusable)
   push:
   pull_request:
   workflow_dispatch:
+# 注意: 呼び出し先のワークフローの 'markdown_glob' 入力は、ローカル設定ファイルの 'globs' よりも優先されます。
 
 permissions:
   actions: read
