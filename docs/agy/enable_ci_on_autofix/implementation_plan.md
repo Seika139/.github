@@ -13,7 +13,7 @@
 
 ### .github
 
-#### [MODIFY] [.github/workflows/lint-markdown.yml](file:///Users/suzukikenichi/programs/.github/.github/workflows/lint-markdown.yml)
+#### [MODIFY] [.github/workflows/lint-markdown.yml](../../../.github/workflows/lint-markdown.yml)
 
 - `ad-m/github-push-action` の `github_token` 入力を修正し、`PUSH_AND_RUN_WORKFLOW_TOKEN` を優先的に使用するように変更します。
 

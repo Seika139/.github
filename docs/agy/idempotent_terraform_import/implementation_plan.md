@@ -11,14 +11,14 @@
 
 ### terraform/github
 
-#### [MODIFY] [main.tf](terraform/github/main.tf)
+#### [MODIFY] [main.tf](../../../terraform/github/main.tf)
 
 - `import` ブロックを追加し、`github_repository.repo` リソースを宣言的にインポートするように設定します。
 - IDには変数 `var.github_repository_full_name` を使用します。
 
 ### mise/tasks
 
-#### [MODIFY] [terra-github.sh](mise/tasks/terra-github.sh)
+#### [MODIFY] [terra-github.sh](../../../mise/tasks/terra-github.sh)
 
 - 明示的な `terraform import` コマンドの実行ブロックを削除します。
 - `terraform plan` および `apply` のみが実行されるようにします。
