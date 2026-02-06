@@ -10,7 +10,7 @@
 ## 変更内容
 
 ### .github
-#### [MODIFY] [.github/workflows/lint-markdown.yml](file:///Users/suzukikenichi/programs/.github/.github/workflows/lint-markdown.yml)
+#### [MODIFY] [.github/workflows/lint-markdown.yml](../../../.github/workflows/lint-markdown.yml)
 - `Checkout` ステップ: `token` 入力を追加し、`secrets.PUSH_AND_RUN_WORKFLOW_TOKEN || secrets.GITHUB_TOKEN` を使用するように変更します。
 - `Push changes` ステップ:
   - `ad-m/github-push-action` を削除します。

@@ -5,7 +5,7 @@
 以前の方法 (`ad-m/github-push-action`) では CI がトリガーされなかったため、`actions/checkout` でトークン認証を行い、標準的な `git push` を使用する方式に切り替えました。
 
 ## 変更されたファイル
-- [.github/workflows/lint-markdown.yml](file:///Users/suzukikenichi/programs/.github/.github/workflows/lint-markdown.yml)
+- [.github/workflows/lint-markdown.yml](../../../.github/workflows/lint-markdown.yml)
 
 ## 検証結果
 ### コード変更の確認
