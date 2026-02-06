@@ -23,6 +23,9 @@ run = '''
 # タスクスクリプトに実行権限を付与する
 find ./mise -name "*.sh" -exec chmod +x {} \;
 
+# terraform の初期化
+dotenvx run -- terraform -chdir=terraform/github init
+
 set -euo pipefail
 
 if [ -f "{{env.MISE_CONFIG_ROOT}}/.env" ]; then
