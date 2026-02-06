@@ -2,6 +2,21 @@
 
 This directory contains GitHub-specific files, such as issue and pull request templates, and GitHub Actions workflows for automating tasks related to the repository.
 
+<div align="center">
+  <a href="https://github.com/Seika139/.github/actions/workflows/lint-yaml.yml">
+    <img alt="Lint YAML" src="https://github.com/Seika139/.github/actions/workflows/lint-yaml.yml/badge.svg">
+  </a>
+  <a href="https://github.com/Seika139/.github/actions/workflows/lint-markdown.yml">
+    <img alt="Lint Markdown" src="https://github.com/Seika139/.github/actions/workflows/lint-markdown.yml/badge.svg">
+  </a>
+  <a href="https://github.com/Seika139/.github/actions/workflows/shellcheck.yml">
+    <img alt="ShellCheck" src="https://github.com/Seika139/.github/actions/workflows/shellcheck.yml/badge.svg">
+  </a>
+  <a href="https://github.com/Seika139/.github/releases/tag/v1.1.0">
+    <img alt="version" src="https://img.shields.io/badge/version-v1.1.0-white.svg">
+  </a>
+</div>
+
 ## See Also
 
 - <https://docs.github.com/ja/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file>
