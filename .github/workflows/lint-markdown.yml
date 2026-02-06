@@ -9,8 +9,8 @@ name: Lint Markdown
       markdown_glob:
         description: "Markdownファイルのグロブパターン。注意: ローカル設定ファイル内の 'globs' 設定よりもこちらが優先されます。"
         required: false
-        default: "**/*.md"
         type: string
+        # default を削除（空なら空として扱うため）
     secrets:
       PUSH_AND_RUN_WORKFLOW_TOKEN:
         required: false
@@ -22,7 +22,8 @@ permissions:
 env:
   NODE_VERSION: "24"
   MARKDOWNLINT_CONFIG: .github-config/.github/config/.markdownlint-cli2.jsonc
-  MARKDOWN_GLOB: ${{ inputs.markdown_glob || '**/*.md' }}
+  # デフォルト値を削除（空なら空のまま渡す）
+  MARKDOWN_GLOB: ${{ inputs.markdown_glob }}
 
 jobs:
   markdownlint:
@@ -47,7 +48,8 @@ jobs:
         uses: tj-actions/changed-files@v47
         with:
           files: |
-            ${{ env.MARKDOWN_GLOB }}
+            # 変更検知にはデフォルトで全ファイルを含めておく（過大評価は安全なため）
+            ${{ env.MARKDOWN_GLOB || '**/*.md' }}
 
       - name: Skip checks (no markdown changes)
         if: steps.changed-files.outputs.any_changed != 'true'
@@ -79,14 +81,25 @@ jobs:
 
           if [ "$config_found" = true ]; then
             echo "Local markdownlint configuration found. Using it."
-            # 注意: コマンドライン引数は設定ファイル内の 'globs' プロパティよりも優先されます。
-            markdownlint-cli2 --fix "$MARKDOWN_GLOB" || true
+
+            if [ -n "$MARKDOWN_GLOB" ]; then
+              echo "Glob provided via input. Overriding configuration globs."
+              markdownlint-cli2 --fix "$MARKDOWN_GLOB" || true
+            else
+              echo "No glob input provided. Using configuration globs."
+              markdownlint-cli2 --fix || true
+            fi
+
           elif [ -f "$MARKDOWNLINT_CONFIG" ]; then
+            TARGET="${MARKDOWN_GLOB:-**/*.md}"
             echo "Local configuration not found. Using shared configuration: $MARKDOWNLINT_CONFIG"
-            markdownlint-cli2 --config "$MARKDOWNLINT_CONFIG" --fix "$MARKDOWN_GLOB" || true
+            echo "Target: $TARGET"
+            markdownlint-cli2 --config "$MARKDOWNLINT_CONFIG" --fix "$TARGET" || true
           else
+            TARGET="${MARKDOWN_GLOB:-**/*.md}"
             echo "No markdownlint configuration found. Using default rules."
-            markdownlint-cli2 --fix "$MARKDOWN_GLOB" || true
+            echo "Target: $TARGET"
+            markdownlint-cli2 --fix "$TARGET" || true
           fi
 
       - name: Check for modifications (PR only)
@@ -134,11 +147,23 @@ jobs:
 
           if [ "$config_found" = true ]; then
             echo "Local markdownlint configuration found. Using it."
-            markdownlint-cli2 "$MARKDOWN_GLOB"
+
+            if [ -n "$MARKDOWN_GLOB" ]; then
+              echo "Glob provided via input. Overriding configuration globs."
+              markdownlint-cli2 "$MARKDOWN_GLOB"
+            else
+              echo "No glob input provided. Using configuration globs."
+              markdownlint-cli2
+            fi
+
           elif [ -f "$MARKDOWNLINT_CONFIG" ]; then
+            TARGET="${MARKDOWN_GLOB:-**/*.md}"
             echo "Local configuration not found. Using shared configuration: $MARKDOWNLINT_CONFIG"
-            markdownlint-cli2 --config "$MARKDOWNLINT_CONFIG" "$MARKDOWN_GLOB"
+            echo "Target: $TARGET"
+            markdownlint-cli2 --config "$MARKDOWNLINT_CONFIG" "$TARGET"
           else
+            TARGET="${MARKDOWN_GLOB:-**/*.md}"
             echo "No markdownlint configuration found. Using default rules."
-            markdownlint-cli2 "$MARKDOWN_GLOB"
+            echo "Target: $TARGET"
+            markdownlint-cli2 "$TARGET"
           fi
