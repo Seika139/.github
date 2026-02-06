@@ -26,5 +26,6 @@
 ## Verification Plan
 
 ### Automated Tests
+
 - `terraform validate` を実行し、構文が正しいことを確認します。
 - `terraform plan` を実行し、既存のリソースに対してインポートまたは変更なし（No changes）となることを確認します。
