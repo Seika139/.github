@@ -40,17 +40,27 @@ resource "github_repository_ruleset" "main" {
 
     # マージにはプルリクエストを必須にする
     pull_request {
-      required_approving_review_count = 0
-      dismiss_stale_reviews_on_push   = false
-      require_code_owner_review       = false
-      require_last_push_approval      = false
+      required_approving_review_count   = 0
+      dismiss_stale_reviews_on_push     = true
+      required_review_thread_resolution = true
+      require_code_owner_review         = false
+      require_last_push_approval        = false
     }
 
     # ステータスチェック（ lint など）を必須にする
     required_status_checks {
-      strict_required_status_checks_policy = false
+      strict_required_status_checks_policy = true
       required_check {
-        context = "lint-markdown"
+        context        = "markdownlint"
+        integration_id = 15368 # GitHub Apps の固定App ID
+      }
+      required_check {
+        context        = "yamllint"
+        integration_id = 15368 # GitHub Apps の固定App ID
+      }
+      required_check {
+        context        = "shellcheck"
+        integration_id = 15368 # GitHub Apps の固定App ID
       }
     }
   }
