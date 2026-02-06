@@ -20,6 +20,9 @@ shell = "bash -c"
 quiet = true
 depends = ["venv"]
 run = '''
+# タスクスクリプトに実行権限を付与する
+find ./mise -name "*.sh" -exec chmod +x {} \;
+
 set -euo pipefail
 
 if [ -f "{{env.MISE_CONFIG_ROOT}}/.env" ]; then

@@ -1,0 +1,57 @@
+# 1. 使用するプロバイダ（GitHub）の定義
+terraform {
+  required_providers {
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.0"
+    }
+  }
+}
+
+# 2. GitHubへの接続設定
+# token と owner は環境変数 GITHUB_TOKEN, GITHUB_OWNER から自動的に読み込まれます
+provider "github" {}
+
+# 3. 既存のリポジトリを指定
+data "github_repository" "repo" {
+  full_name = "Seika139/.github"
+}
+
+# 4. リポジトリルールセットの設定
+resource "github_repository_ruleset" "main" {
+  name        = "main-protection"
+  repository  = data.github_repository.repo.name
+  target      = "branch"
+  enforcement = "active"
+
+  conditions {
+    ref_name {
+      include = ["~DEFAULT_BRANCH"]
+      exclude = []
+    }
+  }
+
+  rules {
+    # ブランチの削除を禁止
+    deletion = true
+
+    # 強制プッシュを禁止（Non-fast-forward pushの禁止）
+    non_fast_forward = true
+
+    # マージにはプルリクエストを必須にする
+    pull_request {
+      required_approving_review_count = 0
+      dismiss_stale_reviews_on_push   = false
+      require_code_owner_review       = false
+      require_last_push_approval      = false
+    }
+
+    # ステータスチェック（ lint など）を必須にする
+    required_status_checks {
+      strict_required_status_checks_policy = false
+      required_check {
+        context = "lint-markdown"
+      }
+    }
+  }
+}
