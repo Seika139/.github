@@ -18,14 +18,19 @@ variable "github_repository_full_name" {
 }
 
 # 3. 既存のリポジトリを指定
-data "github_repository" "repo" {
-  full_name = var.github_repository_full_name
+resource "github_repository" "repo" {
+  name                   = split("/", var.github_repository_full_name)[1]
+  delete_branch_on_merge = true
+  allow_update_branch    = true
+  has_issues             = true
+  has_projects           = true
+  has_wiki               = true
 }
 
 # 4. リポジトリルールセットの設定
 resource "github_repository_ruleset" "main" {
   name        = "main-protection"
-  repository  = data.github_repository.repo.name
+  repository  = github_repository.repo.name
   target      = "branch"
   enforcement = "active"
 
@@ -79,7 +84,7 @@ variable "DOTENV_PRIVATE_KEY" {
 }
 
 resource "github_actions_secret" "DOTENV_PRIVATE_KEY" {
-  repository      = data.github_repository.repo.name
+  repository      = github_repository.repo.name
   secret_name     = "DOTENV_PRIVATE_KEY"
   plaintext_value = var.DOTENV_PRIVATE_KEY
 }
@@ -90,7 +95,7 @@ variable "PUSH_AND_RUN_WORKFLOW_TOKEN" {
 }
 
 resource "github_actions_secret" "PUSH_AND_RUN_WORKFLOW_TOKEN" {
-  repository      = data.github_repository.repo.name
+  repository      = github_repository.repo.name
   secret_name     = "PUSH_AND_RUN_WORKFLOW_TOKEN"
   plaintext_value = var.PUSH_AND_RUN_WORKFLOW_TOKEN
 }
