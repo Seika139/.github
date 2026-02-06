@@ -65,3 +65,15 @@ resource "github_repository_ruleset" "main" {
     }
   }
 }
+
+variable "DOTENV_PRIVATE_KEY" {
+  type      = string
+  sensitive = true
+}
+
+# Secrets の設定
+resource "github_actions_secret" "DOTENV_PRIVATE_KEY" {
+  repository      = data.github_repository.repo.name
+  secret_name     = "DOTENV_PRIVATE_KEY"
+  plaintext_value = var.DOTENV_PRIVATE_KEY
+}
