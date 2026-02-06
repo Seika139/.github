@@ -6,11 +6,14 @@
 #MISE depends=["dotenvx"]
 
 REPO_FULLNAME=$(git remote get-url origin | sed -e 's/.*github.com[:\/]\(.*\)\.git/\1/')
-dotenvx run -- sh -c "
+if ! dotenvx run -- sh -c "
   TF_VAR_DOTENV_PRIVATE_KEY='${DOTENV_PRIVATE_KEY}' \
   TF_VAR_github_repository_full_name='${REPO_FULLNAME}' \
   terraform -chdir=terraform/github plan
-"
+"; then
+  echo "terraform plan の実行に失敗しました。"
+  exit 1
+fi
 
 read -rp "上記の内容で適用しますか？ (y/n): " confirm
 if ! [[ "$confirm" =~ ^[Yy]$ ]]; then
