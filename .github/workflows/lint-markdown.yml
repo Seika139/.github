@@ -117,7 +117,7 @@ jobs:
           && github.actor != 'github-actions[bot]'
         uses: ad-m/github-push-action@v0.8.0
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN || secrets.GITHUB_TOKEN }}
           branch: ${{ github.head_ref }}
 
       - name: Run markdownlint (check only)
