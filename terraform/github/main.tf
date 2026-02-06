@@ -78,6 +78,18 @@ resource "github_repository_ruleset" "main" {
         context        = "shellcheck"
         integration_id = 15368 # GitHub Apps の固定App ID
       }
+      required_check {
+        context        = "lint-and-test"
+        integration_id = 15368
+      }
+      required_check {
+        context        = "mypy"
+        integration_id = 15368
+      }
+      required_check {
+        context        = "setup"
+        integration_id = 15368
+      }
     }
   }
 }
