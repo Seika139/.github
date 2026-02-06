@@ -30,6 +30,7 @@ resource "github_repository" "repo" {
   has_issues             = true
   has_projects           = true
   has_wiki               = true
+  vulnerability_alerts   = true
 }
 
 # 4. リポジトリルールセットの設定
