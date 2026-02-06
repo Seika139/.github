@@ -7,9 +7,9 @@
 ### 1. `determine_next_version.py` の改善
 
 - バージョンの取得優先順位を以下のように変更しました：
-    1. `pyproject.toml` 内の `version` フィールド
-    2. Git タグの最新版 (`v*` 形式)
-    3. 上記が見つからない場合は `0.0.0`
+  1. `pyproject.toml` 内の `version` フィールド
+  2. Git タグの最新版 (`v*` 形式)
+  3. 上記が見つからない場合は `0.0.0`
 - これにより、Python プロジェクト以外でもタグさえあればバージョンアップが可能になりました。
 
 ### 2. `update-version.yml` ワークフローの汎用化
@@ -47,5 +47,5 @@ RELEASE_TAG=v0.0.1
 
 ## 保存されたドキュメント
 
-- [task.md](file:///Users/suzukikenichi/programs/.github/docs/agy/versioning_logic_update/task.md)
-- [implementation_plan.md](file:///Users/suzukikenichi/programs/.github/docs/agy/versioning_logic_update/implementation_plan.md)
+- [task.md](./task.md)
+- [implementation_plan.md](./implementation_plan.md)

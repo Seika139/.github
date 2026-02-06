@@ -6,7 +6,7 @@
 
 ### [Component Name] Shared Scripts
 
-#### [MODIFY] [determine_next_version.py](file:///Users/suzukikenichi/programs/.github/.github/scripts/determine_next_version.py)
+#### [MODIFY] [determine_next_version.py](../../../.github/scripts/determine_next_version.py)
 
 - `read_current_version` 関数を以下の優先順位でバージョンを取得するように変更します：
   1. 指定された `pyproject.toml` (または代替ファイル) 内の `version = "..."`
@@ -18,7 +18,7 @@
 
 ### [Component Name] GitHub Actions Workflows
 
-#### [MODIFY] [update-version.yml](file:///Users/suzukikenichi/programs/.github/.github/workflows/update-version.yml)
+#### [MODIFY] [update-version.yml](../../../.github/workflows/update-version.yml)
 
 - `pyproject.toml` の有無をチェックするステップを追加します。
 - 以下のステップを `pyproject.toml` が存在する場合のみ実行するように変更します：
