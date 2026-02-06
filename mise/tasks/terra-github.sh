@@ -8,7 +8,7 @@
 dotenvx run -- sh -c "TF_VAR_DOTENV_PRIVATE_KEY=\"${DOTENV_PRIVATE_KEY}\" terraform -chdir=terraform/github plan"
 
 read -rp "上記の内容で適用しますか？ (y/n): " confirm
-if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+if ! [[ "$confirm" =~ ^[Yy]$ ]]; then
   echo "適用を中止しました。"
   exit 0
 fi
