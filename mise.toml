@@ -198,3 +198,15 @@ rm -rf .pytest_cache 2>/dev/null || true
 rm -rf .mypy_cache 2>/dev/null || true
 rm -rf .ty_cache 2>/dev/null || true
 '''
+
+[tasks.encrypt]
+description = "暗号化された .env.keys を生成する"
+shell = "bash -c"
+quiet = true
+run = "dotenvx encrypt"
+
+[tasks.decrypt]
+description = "暗号化された .env.keys を復号化する"
+shell = "bash -c"
+quiet = true
+run = "dotenvx decrypt"
