@@ -16,10 +16,8 @@
 #### [MODIFY] [.github/workflows/lint-markdown.yml](../../../.github/workflows/lint-markdown.yml)
 
 - `ad-m/github-push-action` の `github_token` 入力を修正し、`PUSH_AND_RUN_WORKFLOW_TOKEN` を優先的に使用するように変更します。
-
 ## 検証計画
 
 ### 手動検証
-
 - 修正後のコードを確認し、意図通り `secrets.PUSH_AND_RUN_WORKFLOW_TOKEN || secrets.GITHUB_TOKEN` になっているか確認します。
 - 実際の動作確認は、この変更を含む PR がマージされた後の動作で確認します。
