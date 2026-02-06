@@ -22,6 +22,12 @@ depends = ["venv"]
 run = '''
 set -euo pipefail
 
+# タスクスクリプトに実行権限を付与する
+find ./mise -name "*.sh" -exec chmod +x {} \;
+
+# terraform の初期化
+dotenvx run -- terraform -chdir=terraform/github init
+
 if [ -f "{{env.MISE_CONFIG_ROOT}}/.env" ]; then
   set -a
   source "{{env.MISE_CONFIG_ROOT}}/.env"
