@@ -20,7 +20,7 @@ variable "github_repository_full_name" {
 # 3. 既存のリポジトリを指定
 import {
   to = github_repository.repo
-  id = var.github_repository_full_name
+  id = split("/", var.github_repository_full_name)[1]
 }
 
 resource "github_repository" "repo" {
