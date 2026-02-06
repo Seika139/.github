@@ -5,7 +5,12 @@
 #MISE quiet=false
 #MISE depends=["dotenvx"]
 
-dotenvx run -- sh -c "TF_VAR_DOTENV_PRIVATE_KEY=\"${DOTENV_PRIVATE_KEY}\" terraform -chdir=terraform/github plan"
+REPO_FULLNAME=$(git remote get-url origin | sed -e 's/.*github.com[:\/]\(.*\)\.git/\1/')
+dotenvx run -- sh -c "
+  TF_VAR_DOTENV_PRIVATE_KEY='${DOTENV_PRIVATE_KEY}' \
+  TF_VAR_github_repository_full_name='${REPO_FULLNAME}' \
+  terraform -chdir=terraform/github plan
+"
 
 read -rp "上記の内容で適用しますか？ (y/n): " confirm
 if ! [[ "$confirm" =~ ^[Yy]$ ]]; then
@@ -13,4 +18,8 @@ if ! [[ "$confirm" =~ ^[Yy]$ ]]; then
   exit 0
 fi
 
-dotenvx run -- sh -c "TF_VAR_DOTENV_PRIVATE_KEY=\"${DOTENV_PRIVATE_KEY}\" terraform -chdir=terraform/github apply -auto-approve"
+dotenvx run -- sh -c "
+  TF_VAR_DOTENV_PRIVATE_KEY='${DOTENV_PRIVATE_KEY}' \
+  TF_VAR_github_repository_full_name='${REPO_FULLNAME}' \
+  terraform -chdir=terraform/github apply -auto-approve
+"

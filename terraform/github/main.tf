@@ -12,9 +12,14 @@ terraform {
 # token と owner は環境変数 GITHUB_TOKEN, GITHUB_OWNER から自動的に読み込まれます
 provider "github" {}
 
+variable "github_repository_full_name" {
+  type        = string
+  description = "The full name of the GitHub repository (e.g., 'owner/repo')."
+}
+
 # 3. 既存のリポジトリを指定
 data "github_repository" "repo" {
-  full_name = "Seika139/.github"
+  full_name = var.github_repository_full_name
 }
 
 # 4. リポジトリルールセットの設定
