@@ -18,4 +18,4 @@ mkdir -p "$venv_dir"
 chmod -R +w "$venv_dir" 2>/dev/null || true
 find "$venv_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
 uv venv --python "$python_version" --allow-existing "$venv_dir"
-mise run init
+echo "done. Run 'mise run init' to sync dependencies."
