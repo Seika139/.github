@@ -1,5 +1,4 @@
 [vars]
-python_version = "$(cat .python-version 2>/dev/null || echo 'Error: .python-version not found')"
 uv = 'uv'
 text_red = '\033[0;31m'
 text_green = '\033[0;32m'
@@ -18,15 +17,19 @@ text_reset = '\033[0m'
 description = "初期化処理（仮想環境を作成し、依存関係をインストール）"
 shell = "bash -c"
 quiet = true
-depends = ["venv"]
 run = '''
 set -euo pipefail
 
 # タスクスクリプトに実行権限を付与する
 find ./mise -name "*.sh" -exec chmod +x {} \;
+mise run venv
 
-# terraform の初期化
-dotenvx run -- terraform -chdir=terraform/github init
+if terraform -chdir=terraform/github validate > /dev/null 2>&1; then
+  echo "Terraform is Valid and Initialized."
+else
+  echo "Initializing Terraform..."
+  dotenvx run -- terraform -chdir=terraform/github init
+fi
 
 if [ -f "{{env.MISE_CONFIG_ROOT}}/.env" ]; then
   set -a
@@ -42,66 +45,7 @@ fi
 {{vars.uv}} lock
 {{vars.uv}} sync --all-extras
 
-printf "✅ プロジェクトの初期化が完了しました"
-'''
-
-[tasks.venv]
-description = "uvを利用して仮想環境を作成します"
-shell = "bash -c"
-quiet = true
-hide = true
-run = '''
-set -euo pipefail
-project_root="${MISE_CONFIG_ROOT:-$PWD}"
-venv_dir="${project_root}/.venv"
-python_version="{{vars.python_version}}"
-
-venv_python=""
-if [ -f "$venv_dir/bin/python" ]; then
-  venv_python="$venv_dir/bin/python"
-elif [ -f "$venv_dir/Scripts/python.exe" ]; then
-  venv_python="$venv_dir/Scripts/python.exe"
-fi
-
-current_version=""
-if [ -n "$venv_python" ]; then
-  current_version="$("$venv_python" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
-fi
-
-needs_recreate=false
-if [ ! -d "$venv_dir" ] || [ -z "$venv_python" ]; then
-  needs_recreate=true
-elif [ "$current_version" != "$python_version" ]; then
-  needs_recreate=true
-fi
-
-if [ "$needs_recreate" = true ]; then
-  echo "Creating .venv with Python $python_version ..."
-  mkdir -p "$venv_dir"
-  chmod -R +w "$venv_dir" 2>/dev/null || true
-  find "$venv_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
-  {{vars.uv}} venv --python "$python_version" --allow-existing "$venv_dir"
-else
-  echo "Use existing .venv"
-fi
-'''
-
-[tasks.reset-venv]
-description = "仮想環境をリセットします"
-shell = "bash -c"
-quiet = true
-run = '''
-set -euo pipefail
-project_root="${MISE_CONFIG_ROOT:-$PWD}"
-venv_dir="${project_root}/.venv"
-python_version="{{vars.python_version}}"
-
-echo "Resetting .venv ..."
-mkdir -p "$venv_dir"
-chmod -R +w "$venv_dir" 2>/dev/null || true
-find "$venv_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
-{{vars.uv}} venv --python "$python_version" --allow-existing "$venv_dir"
-echo "done. Run 'mise run init' to sync dependencies."
+printf "%b%s%b\n" "{{vars.text_green}}" "✅ プロジェクトの初期化が完了しました" "{{vars.text_reset}}"
 '''
 
 [tasks.upgrade]
