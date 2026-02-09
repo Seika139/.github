@@ -27,10 +27,12 @@ if [ -n "$venv_python" ]; then
   current_version="$("$venv_python" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
 fi
 
+# major.minor のみを比較対象にする
+python_version_short="$(echo "$python_version" | cut -d. -f1,2)"
 needs_recreate=false
 if [ ! -d "$venv_dir" ] || [ -z "$venv_python" ]; then
   needs_recreate=true
-elif [ "$current_version" != "$python_version" ]; then
+elif [ "$current_version" != "$python_version_short" ]; then
   needs_recreate=true
 fi
 
