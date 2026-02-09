@@ -95,16 +95,9 @@ resource "github_repository_ruleset" "main" {
 }
 
 # Secrets の設定
-
 variable "DOTENV_PRIVATE_KEY" {
   type      = string
   sensitive = true
-}
-
-resource "github_actions_secret" "DOTENV_PRIVATE_KEY" {
-  repository      = github_repository.repo.name
-  secret_name     = "DOTENV_PRIVATE_KEY"
-  plaintext_value = var.DOTENV_PRIVATE_KEY
 }
 
 variable "PUSH_AND_RUN_WORKFLOW_TOKEN" {
@@ -112,8 +105,26 @@ variable "PUSH_AND_RUN_WORKFLOW_TOKEN" {
   sensitive = true
 }
 
-resource "github_actions_secret" "PUSH_AND_RUN_WORKFLOW_TOKEN" {
+locals {
+  # まとめて管理したいシークレットを map で定義
+  repo_secrets = {
+    "DOTENV_PRIVATE_KEY"          = var.DOTENV_PRIVATE_KEY
+    "PUSH_AND_RUN_WORKFLOW_TOKEN" = var.PUSH_AND_RUN_WORKFLOW_TOKEN
+  }
+}
+
+# Actions用シークレット（一括生成）
+resource "github_actions_secret" "this" {
+  for_each        = local.repo_secrets
   repository      = github_repository.repo.name
-  secret_name     = "PUSH_AND_RUN_WORKFLOW_TOKEN"
-  plaintext_value = var.PUSH_AND_RUN_WORKFLOW_TOKEN
+  secret_name     = each.key
+  plaintext_value = each.value
+}
+
+# Dependabot用シークレット（一括生成）
+resource "github_dependabot_secret" "dependabot" {
+  for_each        = local.repo_secrets
+  repository      = github_repository.repo.name
+  secret_name     = each.key
+  plaintext_value = each.value
 }
