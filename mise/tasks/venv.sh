@@ -14,7 +14,6 @@ source "${SCRIPT_DIR}/../common.sh"
 project_root="${MISE_CONFIG_ROOT:-$PWD}"
 venv_dir="${project_root}/.venv"
 python_version="$(get_python_version)"
-echo "python_version: $python_version"
 
 venv_python=""
 if [ -f "$venv_dir/bin/python" ]; then
