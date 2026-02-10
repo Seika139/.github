@@ -38,11 +38,11 @@ variable "rulesets" {
     exclude_refs     = list(string)
     deletion         = bool
     non_fast_forward = bool
-    pull_request = object({
+    pull_request = optional(object({
       required_approving_review_count   = number
       dismiss_stale_reviews_on_push     = bool
       required_review_thread_resolution = bool
-    })
+    }), null)
     required_status_checks = list(string)
   }))
   description = "A map of rulesets to apply to the repository."
