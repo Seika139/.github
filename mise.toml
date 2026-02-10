@@ -1,18 +1,3 @@
-[vars]
-uv = 'uv'
-text_red = '\033[0;31m'
-text_green = '\033[0;32m'
-text_yellow = '\033[0;33m'
-text_blue = '\033[0;34m'
-text_magenta = '\033[0;35m'
-text_cyan = '\033[0;36m'
-text_white = '\033[0;37m'
-text_reset = '\033[0m'
-
-########################
-# 環境構築・初期化タスク #
-########################
-
 [tasks.init]
 description = "初期化処理（仮想環境を作成し、依存関係をインストール）"
 shell = "bash -c"
@@ -42,10 +27,10 @@ if [ -n "${VIRTUAL_ENV:-}" ] && [ "${VIRTUAL_ENV}" != "{{env.MISE_CONFIG_ROOT}}/
   unset VIRTUAL_ENV
 fi
 
-{{vars.uv}} lock
-{{vars.uv}} sync --all-extras
+uv lock
+uv sync --all-extras
 
-printf "%b%s%b\n" "{{vars.text_green}}" "✅ プロジェクトの初期化が完了しました" "{{vars.text_reset}}"
+printf "%b%s%b\n" '\033[0;32m' "✅ プロジェクトの初期化が完了しました" '\033[0m'
 '''
 
 [tasks.upgrade]
@@ -54,7 +39,7 @@ shell = "bash -c"
 quiet = true
 depends = ["venv"]
 run = '''
-{{vars.uv}} sync --upgrade --all-extras
+uv sync --upgrade --all-extras
 printf "✅ 依存関係のアップグレードが完了しました\n"
 '''
 
@@ -63,7 +48,7 @@ description = "各種キャッシュ・一時ファイルを削除します"
 shell = "bash -c"
 quiet = true
 run = '''
-{{vars.uv}} run ruff clean
+uv run ruff clean
 find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 rm -rf .pytest_cache 2>/dev/null || true
 rm -rf .mypy_cache 2>/dev/null || true
