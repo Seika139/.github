@@ -5,17 +5,10 @@
 #MISE quiet=false
 #MISE depends=["dotenvx"]
 
-DOTENV_KEY=$(grep "DOTENV_PRIVATE_KEY=" .env.keys | cut -d'=' -f2)
-PUSH_AND_RUN_WORKFLOW_TOKEN=$(dotenvx get PUSH_AND_RUN_WORKFLOW_TOKEN) || {
-  echo "PUSH_AND_RUN_WORKFLOW_TOKEN の取得に失敗しました。"
-  exit 1
-}
+TF_VAR_DOTENV_PRIVATE_KEY=$(grep "DOTENV_PRIVATE_KEY=" .env.keys | cut -d'=' -f2)
+export TF_VAR_DOTENV_PRIVATE_KEY
 
-if ! dotenvx run -- sh -c "
-  TF_VAR_DOTENV_PRIVATE_KEY='${DOTENV_KEY}' \
-  TF_VAR_PUSH_AND_RUN_WORKFLOW_TOKEN='${PUSH_AND_RUN_WORKFLOW_TOKEN}' \
-  terraform -chdir=terraform/github plan
-"; then
+if ! dotenvx run -- terraform -chdir=terraform/github plan; then
   echo "terraform plan の実行に失敗しました。"
   echo "適用を中止しました。"
   exit 0
@@ -27,8 +20,4 @@ if ! [[ "$confirm" =~ ^[Yy]$ ]]; then
   exit 0
 fi
 
-dotenvx run -- sh -c "
-  TF_VAR_DOTENV_PRIVATE_KEY='${DOTENV_KEY}' \
-  TF_VAR_PUSH_AND_RUN_WORKFLOW_TOKEN='${PUSH_AND_RUN_WORKFLOW_TOKEN}' \
-  terraform -chdir=terraform/github apply -auto-approve
-"
+dotenvx run -- terraform -chdir=terraform/github apply -auto-approve
