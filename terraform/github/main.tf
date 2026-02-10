@@ -15,26 +15,3 @@ module "repository" {
     for s in each.value.dependabot_secrets : s => local.secret_values[s]
   }
 }
-
-# --- 構成移行用の設定 (moved blocks) ---
-# これにより、既存の設定が削除・再作成されるのを防ぎ、新しい構成に「移動」したとみなされます。
-
-moved {
-  from = github_repository.repo
-  to   = module.repository[".github"].github_repository.repo
-}
-
-moved {
-  from = github_repository_ruleset.main
-  to   = module.repository[".github"].github_repository_ruleset.main
-}
-
-moved {
-  from = github_actions_secret.this
-  to   = module.repository[".github"].github_actions_secret.this
-}
-
-moved {
-  from = github_dependabot_secret.dependabot
-  to   = module.repository[".github"].github_dependabot_secret.this
-}
