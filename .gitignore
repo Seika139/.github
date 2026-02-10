@@ -211,7 +211,7 @@ terraform.rc
 # End of https://www.toptal.com/developers/gitignore/api/python,terraform
 
 .idea/
-.vscode/**
+.vscode/*
 !.vscode/settings.json
 
 # dotenvx
