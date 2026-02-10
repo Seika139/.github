@@ -7,10 +7,13 @@
 
 ## Tagged Releases
 
-- [unreleased](https://github.com/Seika139/.github/compare/v1.0.0...HEAD)
+- [unreleased](https://github.com/Seika139/.github/compare/v1.1.0...HEAD)
+- [1.1.0](https://github.com/Seika139/.github/compare/v1.0.0...v1.1.0)
 - [1.0.0](https://github.com/Seika139/.github/releases/tag/v1.0.0)
 
 ## [Unreleased]
+
+## [1.1.0] - 2026-02-11
 
 ### Added
 
