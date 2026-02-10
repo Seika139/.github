@@ -21,11 +21,6 @@
   </a>
 </div>
 
-## 関連ドキュメント
-
-- [GitHub 公式: デフォルトのコミュニティ正常性ファイルの作成](https://docs.github.com/ja/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file)
-- [GitHub 公式: ワークフロー、シークレット、およびランナーの共有](https://docs.github.com/ja/actions/administering-github-actions/sharing-workflows-secrets-and-runners-with-your-organization)
-
 ## リポジトリ構成
 
 - **[.github/workflows/](.github/workflows/)**: 他のリポジトリから呼び出し可能な Reusable Workflows を配置。
