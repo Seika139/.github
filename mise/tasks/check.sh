@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#MISE description="dotenvxで必要な .env.keys の存在を保証する"
+#MISE description="コードの静的解析とテストを実行します"
 #MISE shell="bash -c"
 #MISE quiet=true
 
@@ -41,7 +41,7 @@ if command -v markdownlint-cli2 >/dev/null 2>&1; then
     markdownlint-cli2 .
   fi
 else
-  printf "{{vars.text_red}}%s{{vars.text_reset}}\n" "markdownlint-cli2 is not installed; skipping markdown linting."
+  log_red "markdownlint-cli2 is not installed; skipping markdown linting."
 fi
 
 log_cyan "Running yamllint..."
@@ -59,12 +59,12 @@ if command -v shellcheck >/dev/null 2>&1; then
     log_cyan "No shell scripts found; skipping shellcheck."
   fi
 else
-  printf "{{vars.text_red}}%s{{vars.text_reset}}\n" "shellcheck is not installed; skipping shell script linting."
+  log_red "shellcheck is not installed; skipping shell script linting."
 fi
 
 log_cyan "Running terraform fmt check..."
 if command -v terraform >/dev/null 2>&1; then
   terraform fmt -check -recursive
 else
-  printf "{{vars.text_red}}%s{{vars.text_reset}}\n" "terraform is not installed; skipping terraform fmt check."
+  log_red "terraform is not installed; skipping terraform fmt check."
 fi
