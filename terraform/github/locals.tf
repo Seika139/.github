@@ -81,21 +81,15 @@ locals {
             dismiss_stale_reviews_on_push     = true
             required_review_thread_resolution = true
           }
-          required_status_checks = [
+          required_status_checks = flatten([
             "call-common-markdownlint / markdownlint",
-            "call-common-uv-qualify (3.11) / lint-and-test",
-            "call-common-uv-qualify (3.12) / lint-and-test",
-            "call-common-uv-qualify (3.13) / lint-and-test",
-            "call-common-uv-qualify (3.14) / lint-and-test",
-            "call-common-uv-qualify (3.11) / mypy",
-            "call-common-uv-qualify (3.12) / mypy",
-            "call-common-uv-qualify (3.13) / mypy",
-            "call-common-uv-qualify (3.14) / mypy",
-            "call-common-uv-qualify (3.11) / setup",
-            "call-common-uv-qualify (3.12) / setup",
-            "call-common-uv-qualify (3.13) / setup",
-            "call-common-uv-qualify (3.14) / setup"
-          ]
+            [
+              for version in ["3.11", "3.12", "3.13", "3.14"] : [
+                for check in ["lint-and-test", "mypy", "setup"] :
+                "call-common-uv-qualify (${version}) / ${check}"
+              ]
+            ]
+          ])
         }
       }
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN", "DOTENV_PRIVATE_KEY"]
