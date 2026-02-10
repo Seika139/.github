@@ -1,18 +1,3 @@
-[vars]
-uv = 'uv'
-text_red = '\033[0;31m'
-text_green = '\033[0;32m'
-text_yellow = '\033[0;33m'
-text_blue = '\033[0;34m'
-text_magenta = '\033[0;35m'
-text_cyan = '\033[0;36m'
-text_white = '\033[0;37m'
-text_reset = '\033[0m'
-
-########################
-# 環境構築・初期化タスク #
-########################
-
 [tasks.init]
 description = "初期化処理（仮想環境を作成し、依存関係をインストール）"
 shell = "bash -c"
@@ -42,10 +27,10 @@ if [ -n "${VIRTUAL_ENV:-}" ] && [ "${VIRTUAL_ENV}" != "{{env.MISE_CONFIG_ROOT}}/
   unset VIRTUAL_ENV
 fi
 
-{{vars.uv}} lock
-{{vars.uv}} sync --all-extras
+uv lock
+uv sync --all-extras
 
-printf "%b%s%b\n" "{{vars.text_green}}" "✅ プロジェクトの初期化が完了しました" "{{vars.text_reset}}"
+printf "%b%s%b\n" '\033[0;32m' "✅ プロジェクトの初期化が完了しました" '\033[0m'
 '''
 
 [tasks.upgrade]
@@ -54,87 +39,8 @@ shell = "bash -c"
 quiet = true
 depends = ["venv"]
 run = '''
-{{vars.uv}} sync --upgrade --all-extras
+uv sync --upgrade --all-extras
 printf "✅ 依存関係のアップグレードが完了しました\n"
-'''
-
-######################
-# Code Quality Tasks #
-######################
-
-[tasks.check]
-description = "コードの静的解析とテストを実行します"
-shell = "bash -c"
-quiet = true
-env = { SPARK_AUTH_ENV_FILE = ".env.test" }
-run = '''
-printf "{{vars.text_yellow}}%s{{vars.text_reset}}\n" "Running ruff check..."
-{{vars.uv}} run ruff check .
-printf "{{vars.text_yellow}}%s{{vars.text_reset}}\n" "Running mypy..."
-{{vars.uv}} run mypy
-printf "{{vars.text_yellow}}%s{{vars.text_reset}}\n" "Running ty check..."
-{{vars.uv}} run ty check .
-printf "{{vars.text_yellow}}%s{{vars.text_reset}}\n" "Running vulture..."
-targets=()
-if [ -d "src" ]; then targets+=("src"); fi
-if [ -d "tests" ]; then targets+=("tests"); fi
-if [ {% raw %}${#targets[@]}{% endraw %} -eq 0 ]; then
-  targets+=(".")
-fi
-whitelist_paths=""
-if [ -f vulture/whitelists/local.py ]; then
-  whitelist_paths="vulture/whitelists/local.py"
-fi
-{{vars.uv}} run vulture --min-confidence 90 --exclude alembic "${targets[@]}" $whitelist_paths
-printf "{{vars.text_yellow}}%s{{vars.text_reset}}\n" "Running pytest..."
-{{vars.uv}} run pytest tests/
-if command -v markdownlint-cli2 >/dev/null 2>&1; then
-  printf "{{vars.text_yellow}}%s{{vars.text_reset}}\n" "Running markdownlint..."
-  if [ -e .markdownlint-cli2.jsonc ]; then
-    markdownlint-cli2 --config .markdownlint-cli2.jsonc
-  else
-    markdownlint-cli2 .
-  fi
-else
-  printf "{{vars.text_red}}%s{{vars.text_reset}}\n" "markdownlint-cli2 is not installed; skipping markdown linting."
-fi
-
-printf "{{vars.text_yellow}}%s{{vars.text_reset}}\n" "Running yamllint..."
-{{vars.uv}} run yamllint . # .yamllint.yml は自動的に読み込まれる
-
-if command -v shellcheck >/dev/null 2>&1; then
-  printf "{{vars.text_yellow}}%s{{vars.text_reset}}\n" "Running shellcheck..."
-  shellcheck_files=()
-  while IFS= read -r -d '' file; do
-    shellcheck_files+=("$file")
-  done < <(find . -type f \( -name "*.sh" -o -name "*.bash" \) -not -path "./.venv/*" -not -path "./node_modules/*" -not -path "./.git/*" -print0)
-  if [ "${shellcheck_files[0]+_}" ]; then
-    shellcheck -x -P SCRIPTDIR "${shellcheck_files[@]}"
-  else
-    printf "{{vars.text_yellow}}%s{{vars.text_reset}}\n" "No shell scripts found; skipping shellcheck."
-  fi
-else
-  printf "{{vars.text_red}}%s{{vars.text_reset}}\n" "shellcheck is not installed; skipping shell script linting."
-fi
-'''
-
-[tasks.format]
-description = "コードのフォーマットを実行します"
-shell = "bash -c"
-quiet = true
-run = '''
-{{vars.uv}} run ruff format .
-{{vars.uv}} run ruff check . --fix
-if command -v markdownlint-cli2 >/dev/null 2>&1; then
-  printf "{{vars.text_yellow}}%s{{vars.text_reset}}\n" "Running markdownlint fix..."
-  if [ -e .markdownlint-cli2.jsonc ]; then
-    markdownlint-cli2 --config .markdownlint-cli2.jsonc --fix
-  else
-    markdownlint-cli2 --fix .
-  fi
-else
-  printf "{{vars.text_red}}%s{{vars.text_reset}}\n" "markdownlint-cli2 is not installed; skipping markdown formatting."
-fi
 '''
 
 [tasks.clean]
@@ -142,7 +48,7 @@ description = "各種キャッシュ・一時ファイルを削除します"
 shell = "bash -c"
 quiet = true
 run = '''
-{{vars.uv}} run ruff clean
+uv run ruff clean
 find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 rm -rf .pytest_cache 2>/dev/null || true
 rm -rf .mypy_cache 2>/dev/null || true
