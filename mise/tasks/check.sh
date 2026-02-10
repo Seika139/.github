@@ -31,7 +31,6 @@ if [ -f vulture/whitelists/local.py ]; then
 fi
 uv run vulture --min-confidence 90 --exclude alembic "${targets[@]}" $whitelist_paths
 
-log_cyan "Running pytest..."
 if [ -d "tests" ]; then
   log_cyan "Running pytest..."
   uv run pytest tests/
