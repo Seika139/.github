@@ -216,3 +216,6 @@ terraform.rc
 
 # dotenvx
 .env.keys
+
+# Antigravity
+docs/agy/

@@ -33,7 +33,6 @@
 - **[terraform/](terraform/)**: Seika139 の GitHub リポジトリ設定（Rulesets, Secrets 等）をまとめて管理する Terraform コード。
 - **[mise.toml](mise.toml)**: タスクランナー
 - **[mise/](mise/)**: mise.toml では長くなるようなタスクを shell script として定義。
-- **[docs/agy/](docs/agy/)**: AI アシスタント（Antigravity）による変更履歴。
 
 ## セットアップ
 
