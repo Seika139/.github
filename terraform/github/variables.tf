@@ -8,8 +8,3 @@ variable "PUSH_AND_RUN_WORKFLOW_TOKEN" {
   sensitive = true
 }
 
-variable "github_repository_full_name" {
-  type        = string
-  description = "The full name of the GitHub repository (e.g., 'owner/repo')."
-  default     = ""
-}

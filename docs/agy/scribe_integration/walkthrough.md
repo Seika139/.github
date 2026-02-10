@@ -24,6 +24,7 @@
 
 - `terraform plan` 時に生成された `tfplan` ファイルを削除しました。
 - `.gitignore` を更新し、`tfplan` ファイルが Git 管理に含まれないように設定しました。
+- 未使用となっていた変数 `github_repository_full_name` を `variables.tf` および `terra-github.sh` から削除しました。
 
 ## 検証結果
 
