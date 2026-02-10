@@ -65,5 +65,41 @@ locals {
       actions_secrets    = []
       dependabot_secrets = []
     }
+    "scribe" = {
+      description    = "DeepgramとGeminiを活用した高精度な音声書き起こし・要約ツール"
+      default_branch = "main"
+      rulesets = {
+        "main-protection" = {
+          target           = "branch"
+          enforcement      = "active"
+          include_refs     = ["~DEFAULT_BRANCH"]
+          exclude_refs     = []
+          deletion         = true
+          non_fast_forward = true
+          pull_request = {
+            required_approving_review_count   = 0
+            dismiss_stale_reviews_on_push     = true
+            required_review_thread_resolution = true
+          }
+          required_status_checks = [
+            "call-common-markdownlint / markdownlint",
+            "call-common-uv-qualify (3.11) / lint-and-test",
+            "call-common-uv-qualify (3.12) / lint-and-test",
+            "call-common-uv-qualify (3.13) / lint-and-test",
+            "call-common-uv-qualify (3.14) / lint-and-test",
+            "call-common-uv-qualify (3.11) / mypy",
+            "call-common-uv-qualify (3.12) / mypy",
+            "call-common-uv-qualify (3.13) / mypy",
+            "call-common-uv-qualify (3.14) / mypy",
+            "call-common-uv-qualify (3.11) / setup",
+            "call-common-uv-qualify (3.12) / setup",
+            "call-common-uv-qualify (3.13) / setup",
+            "call-common-uv-qualify (3.14) / setup"
+          ]
+        }
+      }
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN", "DOTENV_PRIVATE_KEY"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN", "DOTENV_PRIVATE_KEY"]
+    }
   }
 }
