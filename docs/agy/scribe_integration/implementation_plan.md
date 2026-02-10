@@ -6,7 +6,7 @@
 
 ### GitHub リポジトリ構成
 
-#### [MODIFY] [locals.tf](file:///terraform/github/locals.tf)
+#### [MODIFY] [locals.tf](../../../terraform/github/locals.tf)
 
 `repositories` マップに `scribe` を追加します。
 
@@ -42,11 +42,11 @@
 
 このため、以下の変更については取り消し（または設定の削除）を行います。
 
-#### [REVERT] [repository module](file:///terraform/modules/repository/main.tf)
+#### [REVERT] [repository module](../../../terraform/modules/repository/main.tf)
 
 - 追加した `file_path_restriction` 関連の定義を削除またはコメントアウトします。
 
-#### [REVERT] [locals.tf](file:///terraform/github/locals.tf)
+#### [REVERT] [locals.tf](../../../terraform/github/locals.tf)
 
 - 追加した `do-not-push-secrets` および `no-build-artifacts` ルールセットを削除します。
 
