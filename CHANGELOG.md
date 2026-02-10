@@ -12,6 +12,17 @@
 
 ## [Unreleased]
 
+### Added
+
+- Terraform による GitHub リポジトリ管理をモジュール化 ([terraform/modules/repository/](terraform/modules/repository/))
+- リポジトリの General Settings (`delete_branch_on_merge`, `allow_update_branch` 等) を Terraform 管理下に追加
+- `mise` タスクの追加と整理 (lint, format, venv 管理等) および共通処理の抽出 ([mise/common.sh](mise/common.sh))
+- `PUSH_AND_RUN_WORKFLOW_TOKEN` を GitHub Secrets に追加
+
+### Fixed
+
+- `github-actions[bot]` によるファイル修正時に CI が実行されない問題を修正
+
 ## [1.0.0] - 2026-02-07
 
 ### Added
