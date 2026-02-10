@@ -7,4 +7,3 @@ variable "PUSH_AND_RUN_WORKFLOW_TOKEN" {
   type      = string
   sensitive = true
 }
-
