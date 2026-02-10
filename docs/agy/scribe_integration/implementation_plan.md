@@ -33,6 +33,25 @@
   - `actions_secrets`: `PUSH_AND_RUN_WORKFLOW_TOKEN`, `DOTENV_PRIVATE_KEY`
   - `dependabot_secrets`: `PUSH_AND_RUN_WORKFLOW_TOKEN`, `DOTENV_PRIVATE_KEY`
 
+### シークレット保護およびビルド成果物保護の追加 (Secret and Build Artifact Protection)
+
+> [!CAUTION]
+> **GitHub API の制限事項**
+> 調査の結果、GitHub の「プッシュ時ルールセット (target = "push")」および「ファイルパス制限 (file_path_restriction)」は、**パブリックリポジトリかつ組織 (Organization) 所有ではないリポジトリ**では使用できないことが判明しました。
+> 現在管理しているリポジトリ（.github, fried-shrimp, scribe）はすべて個人所有のパブリックリポジトリであるため、これらのルールを Terraform で設定しようとすると `422 Validation Failed` が発生します。
+
+このため、以下の変更については取り消し（または設定の削除）を行います。
+
+#### [REVERT] [repository module](file:///terraform/modules/repository/main.tf)
+
+- 追加した `file_path_restriction` 関連の定義を削除またはコメントアウトします。
+
+#### [REVERT] [locals.tf](file:///terraform/github/locals.tf)
+
+- 追加した `do-not-push-secrets` および `no-build-artifacts` ルールセットを削除します。
+
+今回の `scribe` リポジトリの統合（ブランチ保護、シークレット管理）自体は正常に完了しており、影響ありません。
+
 ## 検証計画
 
 ### 自動テスト

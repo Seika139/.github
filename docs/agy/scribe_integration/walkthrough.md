@@ -26,6 +26,11 @@
 - `.gitignore` を更新し、`tfplan` ファイルが Git 管理に含まれないように設定しました。
 - 未使用となっていた変数 `github_repository_full_name` を `variables.tf` および `terra-github.sh` から削除しました。
 
+### 5. シークレット保護およびビルド成果物保護
+
+- **注意**: GitHub API の制限により、組織 (Organization) 所有ではない個人パブリックリポジトリでは「プッシュ時ルールセット (`target = "push"`)」および「ファイルパス制限 (`file_path_restriction`)」が構成できないことが判明しました。
+- このため、実装計画で一時的に追加した `push` ルールの設定は取り消し、環境を安全な状態に戻しました。
+
 ## 検証結果
 
 ### GitHub 設定の確認
