@@ -124,15 +124,15 @@ resource "github_repository_ruleset" "this" {
 }
 
 resource "github_actions_secret" "this" {
-  for_each        = var.actions_secrets
+  for_each        = nonsensitive(toset(keys(var.actions_secrets)))
   repository      = github_repository.repo.name
   secret_name     = each.key
-  plaintext_value = each.value
+  plaintext_value = var.actions_secrets[each.key]
 }
 
 resource "github_dependabot_secret" "this" {
-  for_each        = var.dependabot_secrets
+  for_each        = nonsensitive(toset(keys(var.dependabot_secrets)))
   repository      = github_repository.repo.name
   secret_name     = each.key
-  plaintext_value = each.value
+  plaintext_value = var.dependabot_secrets[each.key]
 }
