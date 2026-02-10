@@ -53,12 +53,14 @@ variable "actions_secrets" {
   type        = map(string)
   description = "A map of secrets to set for GitHub Actions."
   default     = {}
+  sensitive   = true
 }
 
 variable "dependabot_secrets" {
   type        = map(string)
   description = "A map of secrets to set for Dependabot."
   default     = {}
+  sensitive   = true
 }
 
 resource "github_repository" "repo" {
