@@ -3,9 +3,11 @@ module "repository" {
   source   = "../modules/repository"
   for_each = local.repositories
 
-  name                   = each.key
-  description            = each.value.description
-  required_status_checks = each.value.required_status_checks
+  name           = each.key
+  description    = each.value.description
+  homepage_url   = try(each.value.homepage_url, "")
+  default_branch = try(each.value.default_branch, "main")
+  rulesets       = each.value.rulesets
 
   actions_secrets = {
     for s in each.value.actions_secrets : s => local.secret_values[s]

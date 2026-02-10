@@ -10,11 +10,60 @@ locals {
 
   repositories = {
     ".github" = {
-      description            = "GitHub上での共通設定を管理するためのリポジトリ"
-      required_status_checks = ["markdownlint", "shellcheck", "yamllint", "mypy", "lint-and-test", "setup"]
-      actions_secrets        = ["PUSH_AND_RUN_WORKFLOW_TOKEN", "DOTENV_PRIVATE_KEY"]
-      dependabot_secrets     = ["PUSH_AND_RUN_WORKFLOW_TOKEN", "DOTENV_PRIVATE_KEY"]
+      description    = "GitHub上での共通設定を管理するためのリポジトリ"
+      default_branch = "main"
+      rulesets = {
+        "main-protection" = {
+          target           = "branch"
+          enforcement      = "active"
+          include_refs     = ["~DEFAULT_BRANCH"]
+          exclude_refs     = []
+          deletion         = true
+          non_fast_forward = true
+          pull_request = {
+            required_approving_review_count   = 0
+            dismiss_stale_reviews_on_push     = true
+            required_review_thread_resolution = true
+          }
+          required_status_checks = ["markdownlint", "shellcheck", "yamllint", "mypy", "lint-and-test", "setup"]
+        }
+      }
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN", "DOTENV_PRIVATE_KEY"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN", "DOTENV_PRIVATE_KEY"]
     }
-    # 他のリポジトリを追加する場合はここに追記
+
+    "fried-shrimp" = {
+      description    = "Your own personal AI assistant. Any OS. Any Platform. The lobster way. 🦞 "
+      homepage_url   = "https://openclaw.ai"
+      default_branch = "develop"
+      rulesets = {
+        "develop-protection" = {
+          target           = "branch"
+          enforcement      = "active"
+          include_refs     = ["refs/heads/develop"]
+          exclude_refs     = []
+          deletion         = true
+          non_fast_forward = true
+          pull_request = {
+            required_approving_review_count   = 0
+            dismiss_stale_reviews_on_push     = true
+            required_review_thread_resolution = true
+          }
+          required_status_checks = ["call-common-markdownlint / markdownlint"]
+        }
+        "main-protection" = {
+          target                 = "branch"
+          enforcement            = "active"
+          include_refs           = ["refs/heads/main"]
+          exclude_refs           = []
+          deletion               = true
+          non_fast_forward       = false # upstream 同期を許可
+          pull_request           = null
+          required_status_checks = []
+        }
+      }
+      actions_secrets    = []
+      dependabot_secrets = []
+    }
   }
 }

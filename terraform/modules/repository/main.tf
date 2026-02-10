@@ -18,10 +18,35 @@ variable "description" {
   default     = ""
 }
 
-variable "required_status_checks" {
-  type        = list(string)
-  description = "A list of required status checks for the main branch ruleset."
-  default     = []
+variable "homepage_url" {
+  type        = string
+  description = "The URL of a page related to the repository."
+  default     = ""
+}
+
+variable "default_branch" {
+  type        = string
+  description = "The default branch of the repository."
+  default     = "main"
+}
+
+variable "rulesets" {
+  type = map(object({
+    target           = string
+    enforcement      = string
+    include_refs     = list(string)
+    exclude_refs     = list(string)
+    deletion         = bool
+    non_fast_forward = bool
+    pull_request = object({
+      required_approving_review_count   = number
+      dismiss_stale_reviews_on_push     = bool
+      required_review_thread_resolution = bool
+    })
+    required_status_checks = list(string)
+  }))
+  description = "A map of rulesets to apply to the repository."
+  default     = {}
 }
 
 variable "actions_secrets" {
@@ -39,6 +64,7 @@ variable "dependabot_secrets" {
 resource "github_repository" "repo" {
   name                   = var.name
   description            = var.description
+  homepage_url           = var.homepage_url
   delete_branch_on_merge = true
   allow_update_branch    = true
   has_issues             = true
@@ -47,37 +73,44 @@ resource "github_repository" "repo" {
   vulnerability_alerts   = true
 }
 
-resource "github_repository_ruleset" "main" {
-  name        = "main-protection"
+resource "github_branch_default" "default" {
+  repository = github_repository.repo.name
+  branch     = var.default_branch
+}
+
+resource "github_repository_ruleset" "this" {
+  for_each    = var.rulesets
+  name        = each.key
   repository  = github_repository.repo.name
-  target      = "branch"
-  enforcement = "active"
+  target      = each.value.target
+  enforcement = each.value.enforcement
 
   conditions {
     ref_name {
-      include = ["~DEFAULT_BRANCH"]
-      exclude = []
+      include = each.value.include_refs
+      exclude = each.value.exclude_refs
     }
   }
 
   rules {
-    deletion         = true
-    non_fast_forward = true
+    deletion         = each.value.deletion
+    non_fast_forward = each.value.non_fast_forward
 
-    pull_request {
-      required_approving_review_count   = 0
-      dismiss_stale_reviews_on_push     = true
-      required_review_thread_resolution = true
-      require_code_owner_review         = false
-      require_last_push_approval        = false
+    dynamic "pull_request" {
+      for_each = each.value.pull_request != null ? [each.value.pull_request] : []
+      content {
+        required_approving_review_count   = pull_request.value.required_approving_review_count
+        dismiss_stale_reviews_on_push     = pull_request.value.dismiss_stale_reviews_on_push
+        required_review_thread_resolution = pull_request.value.required_review_thread_resolution
+      }
     }
 
     dynamic "required_status_checks" {
-      for_each = length(var.required_status_checks) > 0 ? [1] : []
+      for_each = length(each.value.required_status_checks) > 0 ? [1] : []
       content {
         strict_required_status_checks_policy = true
         dynamic "required_check" {
-          for_each = var.required_status_checks
+          for_each = each.value.required_status_checks
           content {
             context        = required_check.value
             integration_id = 15368
