@@ -33,7 +33,7 @@ locals {
     }
 
     "fried-shrimp" = {
-      description    = "Your own personal AI assistant. Any OS. Any Platform. The lobster way. 🦞 "
+      description    = "Your own personal AI assistant. Any OS. Any Platform. The lobster way. 🦞"
       homepage_url   = "https://openclaw.ai"
       default_branch = "develop"
       rulesets = {
