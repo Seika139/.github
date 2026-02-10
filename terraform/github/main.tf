@@ -16,4 +16,6 @@ module "repository" {
   dependabot_secrets = {
     for s in each.value.dependabot_secrets : s => local.secret_values[s]
   }
+
+  integration_id = local.github_actions_integration_id
 }

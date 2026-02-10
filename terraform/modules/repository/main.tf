@@ -63,6 +63,12 @@ variable "dependabot_secrets" {
   sensitive   = true
 }
 
+variable "integration_id" {
+  type        = number
+  description = "The integration ID for GitHub Actions or other apps."
+  default     = 15368
+}
+
 resource "github_repository" "repo" {
   name                   = var.name
   description            = var.description
@@ -115,7 +121,7 @@ resource "github_repository_ruleset" "this" {
           for_each = each.value.required_status_checks
           content {
             context        = required_check.value
-            integration_id = 15368
+            integration_id = var.integration_id
           }
         }
       }

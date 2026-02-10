@@ -1,6 +1,6 @@
 locals {
   # GitHub Actions integration ID
-  github_actions_integration_id = 15368
+  github_actions_integration_id = var.github_actions_integration_id
 
   # Secret 値のマッピング（変数名 → 値）
   secret_values = {
