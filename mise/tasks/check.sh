@@ -32,7 +32,13 @@ fi
 uv run vulture --min-confidence 90 --exclude alembic "${targets[@]}" $whitelist_paths
 
 log_cyan "Running pytest..."
-uv run pytest tests/
+if [ -d "tests" ]; then
+  log_cyan "Running pytest..."
+  uv run pytest tests/
+else
+  log_yellow "tests/ directory not found; skipping pytest."
+fi
+
 if command -v markdownlint-cli2 >/dev/null 2>&1; then
   log_cyan "Running markdownlint..."
   if [ -e .markdownlint-cli2.jsonc ]; then
