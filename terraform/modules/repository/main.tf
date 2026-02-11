@@ -40,10 +40,15 @@ variable "rulesets" {
     non_fast_forward = bool
     pull_request = optional(object({
       required_approving_review_count   = number
-      dismiss_stale_reviews_on_push     = bool
       required_review_thread_resolution = bool
+      dismiss_stale_reviews_on_push     = bool
     }), null)
     required_status_checks = list(string)
+    bypass_actors = optional(list(object({
+      actor_id    = number
+      actor_type  = string
+      bypass_mode = string
+    })), [])
   }))
   description = "A map of rulesets to apply to the repository."
   default     = {}
@@ -97,6 +102,15 @@ resource "github_repository_ruleset" "this" {
     ref_name {
       include = each.value.include_refs
       exclude = each.value.exclude_refs
+    }
+  }
+
+  dynamic "bypass_actors" {
+    for_each = each.value.bypass_actors
+    content {
+      actor_id    = bypass_actors.value.actor_id
+      actor_type  = bypass_actors.value.actor_type
+      bypass_mode = bypass_actors.value.bypass_mode
     }
   }
 

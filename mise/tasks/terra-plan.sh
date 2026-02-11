@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#MISE description="terraformでgithubリポジトリのブランチ保護ルールを設定する"
+#MISE description="terraform planを実行する"
 #MISE shell="bash -c"
 #MISE quiet=false
 #MISE depends=["dotenvx"]
@@ -17,11 +17,3 @@ if ! dotenvx run -- terraform -chdir=terraform/github plan; then
   log_red "terraform plan の実行に失敗しました。"
   exit 1
 fi
-
-read -rp "上記の内容で適用しますか？ (y/n): " confirm
-if ! [[ "$confirm" =~ ^[Yy]$ ]]; then
-  log_yellow "適用を中止しました。"
-  exit 0
-fi
-
-dotenvx run -- terraform -chdir=terraform/github apply -auto-approve
