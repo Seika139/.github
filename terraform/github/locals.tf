@@ -50,6 +50,13 @@ locals {
             required_review_thread_resolution = true
           }
           required_status_checks = ["call-common-markdownlint / markdownlint"]
+          bypass_actors = [
+            {
+              actor_id    = 5
+              actor_type  = "RepositoryRole"
+              bypass_mode = "always"
+            }
+          ]
         }
         "main-protection" = {
           target                 = "branch"
