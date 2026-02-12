@@ -49,6 +49,9 @@ variable "rulesets" {
       actor_type  = string
       bypass_mode = string
     })), [])
+    file_path_restriction = optional(object({
+      restricted_file_paths = list(string)
+    }), null)
   }))
   description = "A map of rulesets to apply to the repository."
   default     = {}
@@ -98,10 +101,13 @@ resource "github_repository_ruleset" "this" {
   target      = each.value.target
   enforcement = each.value.enforcement
 
-  conditions {
-    ref_name {
-      include = each.value.include_refs
-      exclude = each.value.exclude_refs
+  dynamic "conditions" {
+    for_each = each.value.target == "branch" ? [1] : []
+    content {
+      ref_name {
+        include = each.value.include_refs
+        exclude = each.value.exclude_refs
+      }
     }
   }
 
@@ -138,6 +144,13 @@ resource "github_repository_ruleset" "this" {
             integration_id = var.integration_id
           }
         }
+      }
+    }
+
+    dynamic "file_path_restriction" {
+      for_each = each.value.file_path_restriction != null ? [each.value.file_path_restriction] : []
+      content {
+        restricted_file_paths = file_path_restriction.value.restricted_file_paths
       }
     }
   }

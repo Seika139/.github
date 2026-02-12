@@ -27,6 +27,19 @@ locals {
           }
           required_status_checks = ["markdownlint", "shellcheck", "yamllint", "mypy", "lint-and-test", "setup"]
         }
+        "secret-protection" = {
+          target                 = "push"
+          enforcement            = "active"
+          include_refs           = []
+          exclude_refs           = []
+          deletion               = false
+          non_fast_forward       = false
+          pull_request           = null
+          required_status_checks = []
+          file_path_restriction = {
+            restricted_file_paths = ["auth.json", ".env.keys", ".netrc"]
+          }
+        }
       }
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN", "DOTENV_PRIVATE_KEY"]
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN", "DOTENV_PRIVATE_KEY"]
@@ -68,6 +81,19 @@ locals {
           pull_request           = null
           required_status_checks = []
         }
+        "secret-protection" = {
+          target                 = "push"
+          enforcement            = "active"
+          include_refs           = []
+          exclude_refs           = []
+          deletion               = false
+          non_fast_forward       = false
+          pull_request           = null
+          required_status_checks = []
+          file_path_restriction = {
+            restricted_file_paths = ["auth.json", ".env.keys", ".netrc"]
+          }
+        }
       }
       actions_secrets    = []
       dependabot_secrets = []
@@ -97,6 +123,19 @@ locals {
               ]
             ]
           ])
+        }
+        "secret-protection" = {
+          target                 = "push"
+          enforcement            = "active"
+          include_refs           = []
+          exclude_refs           = []
+          deletion               = false
+          non_fast_forward       = false
+          pull_request           = null
+          required_status_checks = []
+          file_path_restriction = {
+            restricted_file_paths = ["auth.json", ".env.keys", ".netrc"]
+          }
         }
       }
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN", "DOTENV_PRIVATE_KEY"]
