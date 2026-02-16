@@ -16,6 +16,17 @@
 
 ## [1.1.1] - 2026-02-17
 
+### Added
+
+- Terraform の GitHub 管理に dotfiles リポジトリを追加
+- Terraform のルールセットに bypass ルールを追加
+- [dependabot.yml](.github/dependabot.yml) に github-actions のアップデートを許可する設定を追加
+- Terraform の GitHub 管理において [imports.tf](terraform/github/imports.tf) を作成し、既存の GitHub リポジトリをインポートする機能を追加
+
+### Fixed
+
+- Terraform の実行ジョブを plan と apply に分割
+
 ## [1.1.0] - 2026-02-11
 
 ### Added

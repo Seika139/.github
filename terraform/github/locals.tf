@@ -32,6 +32,14 @@ locals {
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN", "DOTENV_PRIVATE_KEY"]
     }
 
+    "dotfiles" = {
+      description        = "dotfiles"
+      default_branch     = "main"
+      rulesets           = {}
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+    }
+
     "fried-shrimp" = {
       description    = "Your own personal AI assistant. Any OS. Any Platform. The lobster way. 🦞"
       homepage_url   = "https://openclaw.ai"
