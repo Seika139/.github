@@ -1,6 +1,6 @@
 [project]
 name = "github"
-version = "1.1.0"
+version = "1.1.1"
 description = "Manage Python Scripts for GitHub Actions"
 readme = "README.md"
 requires-python = ">=3.13"
