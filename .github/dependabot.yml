@@ -9,8 +9,20 @@ updates:
       time: "10:00"
       timezone: "Asia/Tokyo"
     groups:
-      all:
+      uv-deps:
         patterns:
           - "*"
     cooldown:
       default-days: 7
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+      timezone: "Asia/Tokyo"
+    groups:
+      github-actions-deps:
+        patterns:
+          - "*"
