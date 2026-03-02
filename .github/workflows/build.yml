@@ -131,7 +131,7 @@ jobs:
 
       - name: Upload wheel artifact
         if: steps.run-checks.outputs.run == 'true'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: spark-rag-core-wheel
           path: dist/*.whl
