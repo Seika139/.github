@@ -61,7 +61,7 @@ jobs:
         run: uv run python ${{ inputs.script-path }} ${{ inputs.script-args }}
 
       - name: Upload docs artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: api-docs
           path: ${{ inputs.output-dir }}
