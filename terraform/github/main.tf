@@ -6,6 +6,8 @@ module "repository" {
   name           = each.key
   description    = each.value.description
   homepage_url   = try(each.value.homepage_url, "")
+  visibility     = try(each.value.visibility, "public")
+  has_wiki       = try(each.value.has_wiki, true)
   default_branch = try(each.value.default_branch, "main")
   rulesets       = each.value.rulesets
 
