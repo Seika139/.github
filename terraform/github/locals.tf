@@ -80,6 +80,16 @@ locals {
       actions_secrets    = []
       dependabot_secrets = []
     }
+    "claw-knowledge" = {
+      description    = "LLMを利用した開発で得た知見をまとめる"
+      visibility     = "private"
+      has_wiki       = false
+      default_branch = "main"
+      rulesets           = {}
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+    }
+
     "scribe" = {
       description    = "DeepgramとGeminiを活用した高精度な音声書き起こし・要約ツール"
       default_branch = "main"

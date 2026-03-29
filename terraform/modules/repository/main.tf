@@ -24,6 +24,23 @@ variable "homepage_url" {
   default     = ""
 }
 
+variable "visibility" {
+  type        = string
+  description = "The visibility of the repository. Can be 'public' or 'private'."
+  default     = "public"
+
+  validation {
+    condition     = contains(["public", "private"], var.visibility)
+    error_message = "visibility must be 'public' or 'private'."
+  }
+}
+
+variable "has_wiki" {
+  type        = bool
+  description = "Whether the repository has wiki enabled."
+  default     = true
+}
+
 variable "default_branch" {
   type        = string
   description = "The default branch of the repository."
@@ -78,12 +95,18 @@ resource "github_repository" "repo" {
   name                   = var.name
   description            = var.description
   homepage_url           = var.homepage_url
+  visibility             = var.visibility
   delete_branch_on_merge = true
   allow_update_branch    = true
   has_issues             = true
   has_projects           = true
-  has_wiki               = true
+  has_wiki               = var.has_wiki
   vulnerability_alerts   = true
+
+  # 個人リポジトリでは allow_forking の変更が API エラーになるため無視する
+  lifecycle {
+    ignore_changes = [allow_forking]
+  }
 }
 
 resource "github_branch_default" "default" {
