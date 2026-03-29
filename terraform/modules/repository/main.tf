@@ -28,6 +28,11 @@ variable "visibility" {
   type        = string
   description = "The visibility of the repository. Can be 'public' or 'private'."
   default     = "public"
+
+  validation {
+    condition     = contains(["public", "private"], var.visibility)
+    error_message = "visibility must be 'public' or 'private'."
+  }
 }
 
 variable "has_wiki" {
@@ -98,6 +103,7 @@ resource "github_repository" "repo" {
   has_wiki               = var.has_wiki
   vulnerability_alerts   = true
 
+  # 個人リポジトリでは allow_forking の変更が API エラーになるため無視する
   lifecycle {
     ignore_changes = [allow_forking]
   }
