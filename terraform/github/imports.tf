@@ -46,6 +46,17 @@ import {
   id = "fried-shrimp:main-protection"
 }
 
+# second-brain
+import {
+  to = module.repository["second-brain"].github_repository.repo
+  id = "second-brain"
+}
+
+import {
+  to = module.repository["second-brain"].github_branch_default.default
+  id = "second-brain"
+}
+
 # scribe
 import {
   to = module.repository["scribe"].github_repository.repo
