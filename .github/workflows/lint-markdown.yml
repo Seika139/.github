@@ -62,7 +62,7 @@ jobs:
         run: |
           if [ -f .rumdl.toml ] || [ -f rumdl.toml ]; then
             tool=rumdl
-          elif [ -f pyproject.toml ] && grep -q '^\[tool\.rumdl\]' pyproject.toml; then
+          elif [ -f pyproject.toml ] && grep -Eq '^\[tool\.rumdl(\]|\.)' pyproject.toml; then
             tool=rumdl
           else
             tool=markdownlint
@@ -93,7 +93,7 @@ jobs:
           && steps.detect-tool.outputs.tool == 'rumdl'
           && github.event_name == 'pull_request'
         run: |
-          TARGET="${MARKDOWN_GLOB:-.}"
+          TARGET="${MARKDOWN_GLOB:-**/*.md}"
           echo "Running rumdl --fix on: $TARGET"
           rumdl check --fix "$TARGET" || true
 
@@ -171,7 +171,7 @@ jobs:
           steps.changed-files.outputs.any_changed == 'true'
           && steps.detect-tool.outputs.tool == 'rumdl'
         run: |
-          TARGET="${MARKDOWN_GLOB:-.}"
+          TARGET="${MARKDOWN_GLOB:-**/*.md}"
           echo "Running rumdl check on: $TARGET"
           rumdl check "$TARGET"
 
