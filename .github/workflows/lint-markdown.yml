@@ -55,18 +55,53 @@ jobs:
         if: steps.changed-files.outputs.any_changed != 'true'
         run: echo "No markdown changes detected; skipping linting."
 
-      - name: Setup Node.js
+      # 利用先リポジトリで rumdl 設定が見つかれば rumdl を、なければ markdownlint-cli2 を使う
+      - name: Detect linter tool
+        id: detect-tool
         if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          if [ -f .rumdl.toml ] || [ -f rumdl.toml ]; then
+            tool=rumdl
+          elif [ -f pyproject.toml ] && grep -Eq '^\[tool\.rumdl(\]|\.)' pyproject.toml; then
+            tool=rumdl
+          else
+            tool=markdownlint
+          fi
+          echo "tool=$tool" >> "$GITHUB_OUTPUT"
+          echo "Detected linter: $tool"
+
+      - name: Install rumdl
+        if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tool.outputs.tool == 'rumdl'
+        run: |
+          curl -LsSf https://github.com/rvben/rumdl/releases/latest/download/rumdl-linux-x86_64.tar.gz \
+            | sudo tar xzf - -C /usr/local/bin
+          rumdl --version
+
+      - name: Setup Node.js
+        if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tool.outputs.tool == 'markdownlint'
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install markdownlint-cli2
-        if: steps.changed-files.outputs.any_changed == 'true'
+        if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tool.outputs.tool == 'markdownlint'
         run: npm install -g markdownlint-cli2
 
+      - name: Run rumdl with auto-fix (PR only)
+        if: >-
+          steps.changed-files.outputs.any_changed == 'true'
+          && steps.detect-tool.outputs.tool == 'rumdl'
+          && github.event_name == 'pull_request'
+        run: |
+          TARGET="${MARKDOWN_GLOB:-**/*.md}"
+          echo "Running rumdl --fix on: $TARGET"
+          rumdl check --fix "$TARGET" || true
+
       - name: Run markdownlint with auto-fix (PR only)
-        if: steps.changed-files.outputs.any_changed == 'true' && github.event_name == 'pull_request'
+        if: >-
+          steps.changed-files.outputs.any_changed == 'true'
+          && steps.detect-tool.outputs.tool == 'markdownlint'
+          && github.event_name == 'pull_request'
         run: |
           config_found=false
           for f in .markdownlint-cli2.jsonc .markdownlint-cli2.yaml \
@@ -131,8 +166,19 @@ jobs:
           && github.actor != 'github-actions[bot]'
         run: git push origin HEAD:${{ github.head_ref }}
 
+      - name: Run rumdl (check only)
+        if: >-
+          steps.changed-files.outputs.any_changed == 'true'
+          && steps.detect-tool.outputs.tool == 'rumdl'
+        run: |
+          TARGET="${MARKDOWN_GLOB:-**/*.md}"
+          echo "Running rumdl check on: $TARGET"
+          rumdl check "$TARGET"
+
       - name: Run markdownlint (check only)
-        if: steps.changed-files.outputs.any_changed == 'true'
+        if: >-
+          steps.changed-files.outputs.any_changed == 'true'
+          && steps.detect-tool.outputs.tool == 'markdownlint'
         run: |
           config_found=false
           for f in .markdownlint-cli2.jsonc .markdownlint-cli2.yaml \

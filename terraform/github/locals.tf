@@ -90,6 +90,16 @@ locals {
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
 
+    "second-brain" = {
+      description        = "個人用ナレッジリポジトリ（Markdown + AI検索）"
+      visibility         = "private"
+      has_wiki           = false
+      default_branch     = "main"
+      rulesets           = {}
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+    }
+
     "scribe" = {
       description    = "DeepgramとGeminiを活用した高精度な音声書き起こし・要約ツール"
       default_branch = "main"
@@ -119,6 +129,22 @@ locals {
       }
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN", "DOTENV_PRIVATE_KEY"]
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN", "DOTENV_PRIVATE_KEY"]
+    }
+
+    "discord-notify" = {
+      description        = "外部依存ゼロの Discord Webhook クライアント（Python 標準ライブラリのみ）"
+      default_branch     = "main"
+      rulesets           = {}
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+    }
+
+    "repo-sync" = {
+      description        = "ローカル git リポジトリを GitHub と自動同期する CLI（discord-notify 連携）"
+      default_branch     = "main"
+      rulesets           = {}
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
   }
 }
