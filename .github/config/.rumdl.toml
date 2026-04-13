@@ -1,6 +1,6 @@
 [global]
 respect-gitignore = true
-exclude = [".claude/"]
+exclude = [".claude/**"]
 disable = [
   "MD013", # 行の長さは自由
   "MD024", # 重複した見出しを許可
