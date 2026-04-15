@@ -40,10 +40,11 @@ fi
 
 if command -v rumdl >/dev/null 2>&1; then
   log_cyan "Running rumdl check..."
-  rumdl check .
+  # 明示パスを渡すと --respect-gitignore が効かないので引数なしで実行する
+  rumdl check
 elif command -v markdownlint-cli2 >/dev/null 2>&1; then
   log_cyan "rumdl not found; falling back to markdownlint-cli2..."
-  markdownlint-cli2 .
+  markdownlint-cli2
 else
   log_red "neither rumdl nor markdownlint-cli2 is installed; skipping markdown linting."
 fi
