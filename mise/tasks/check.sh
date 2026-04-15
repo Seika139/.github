@@ -38,15 +38,11 @@ else
   log_yellow "tests/ directory not found; skipping pytest."
 fi
 
-if command -v markdownlint-cli2 >/dev/null 2>&1; then
-  log_cyan "Running markdownlint..."
-  if [ -e .markdownlint-cli2.jsonc ]; then
-    markdownlint-cli2 --config .markdownlint-cli2.jsonc
-  else
-    markdownlint-cli2 .
-  fi
+if command -v rumdl >/dev/null 2>&1; then
+  log_cyan "Running rumdl check..."
+  rumdl check .
 else
-  log_red "markdownlint-cli2 is not installed; skipping markdown linting."
+  log_red "rumdl is not installed; skipping markdown linting."
 fi
 
 log_cyan "Running yamllint..."
