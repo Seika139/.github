@@ -15,15 +15,15 @@ uv run ruff format .
 log_cyan "Running ruff check with --fix..."
 uv run ruff check . --fix
 
-if command -v markdownlint-cli2 >/dev/null 2>&1; then
-  log_cyan "Running markdownlint fix..."
-  if [ -e .markdownlint-cli2.jsonc ]; then
-    markdownlint-cli2 --config .markdownlint-cli2.jsonc --fix
-  else
-    markdownlint-cli2 --fix .
-  fi
+if command -v rumdl >/dev/null 2>&1; then
+  log_cyan "Running rumdl check --fix..."
+  # 明示パスを渡すと --respect-gitignore が効かないので引数なしで実行する
+  rumdl check --fix
+elif command -v markdownlint-cli2 >/dev/null 2>&1; then
+  log_cyan "rumdl not found; falling back to markdownlint-cli2 --fix..."
+  markdownlint-cli2 --fix
 else
-  log_red "markdownlint-cli2 is not installed; skipping markdown formatting."
+  log_red "neither rumdl nor markdownlint-cli2 is installed; skipping markdown formatting."
 fi
 
 if command -v terraform >/dev/null 2>&1; then
