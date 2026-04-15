@@ -41,8 +41,11 @@ fi
 if command -v rumdl >/dev/null 2>&1; then
   log_cyan "Running rumdl check..."
   rumdl check .
+elif command -v markdownlint-cli2 >/dev/null 2>&1; then
+  log_cyan "rumdl not found; falling back to markdownlint-cli2..."
+  markdownlint-cli2 .
 else
-  log_red "rumdl is not installed; skipping markdown linting."
+  log_red "neither rumdl nor markdownlint-cli2 is installed; skipping markdown linting."
 fi
 
 log_cyan "Running yamllint..."

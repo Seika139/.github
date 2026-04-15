@@ -18,8 +18,11 @@ uv run ruff check . --fix
 if command -v rumdl >/dev/null 2>&1; then
   log_cyan "Running rumdl check --fix..."
   rumdl check --fix .
+elif command -v markdownlint-cli2 >/dev/null 2>&1; then
+  log_cyan "rumdl not found; falling back to markdownlint-cli2 --fix..."
+  markdownlint-cli2 --fix .
 else
-  log_red "rumdl is not installed; skipping markdown formatting."
+  log_red "neither rumdl nor markdownlint-cli2 is installed; skipping markdown formatting."
 fi
 
 if command -v terraform >/dev/null 2>&1; then
