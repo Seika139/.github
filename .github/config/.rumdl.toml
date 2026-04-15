@@ -1,5 +1,5 @@
 [global]
-respect-gitignore = true
+respect_gitignore = true
 exclude = [".claude/**"]
 disable = [
   "MD013", # 行の長さは自由
