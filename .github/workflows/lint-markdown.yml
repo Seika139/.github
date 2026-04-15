@@ -21,7 +21,7 @@ permissions:
 
 env:
   NODE_VERSION: "24"
-  MARKDOWNLINT_CONFIG: .github-config/.github/config/.markdownlint-cli2.jsonc
+  SHARED_RUMDL_CONFIG: .github-config/.github/config/.rumdl.toml
   # デフォルト値を削除（空なら空のまま渡す）
   MARKDOWN_GLOB: ${{ inputs.markdown_glob }}
 
@@ -55,20 +55,43 @@ jobs:
         if: steps.changed-files.outputs.any_changed != 'true'
         run: echo "No markdown changes detected; skipping linting."
 
-      # 利用先リポジトリで rumdl 設定が見つかれば rumdl を、なければ markdownlint-cli2 を使う
+      # 優先順位:
+      #   1. ローカルに rumdl 設定あり -> rumdl (local 設定)
+      #   2. ローカルに markdownlint-cli2 設定あり -> markdownlint (local 設定)
+      #   3. どちらも無い -> rumdl (shared 設定 .github-config/.github/config/.rumdl.toml)
       - name: Detect linter tool
         id: detect-tool
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
+          tool=
+          rumdl_config=
           if [ -f .rumdl.toml ] || [ -f rumdl.toml ]; then
             tool=rumdl
+            rumdl_config=local
           elif [ -f pyproject.toml ] && grep -Eq '^\[tool\.rumdl(\]|\.)' pyproject.toml; then
             tool=rumdl
+            rumdl_config=local
           else
-            tool=markdownlint
+            md_found=false
+            for f in .markdownlint-cli2.jsonc .markdownlint-cli2.yaml \
+              .markdownlint-cli2.json .markdownlint-cli2.cjs \
+              .markdownlint-cli2.mjs .markdownlint.json \
+              .markdownlint.yaml .markdownlint.yml; do
+              if [ -f "$f" ]; then
+                md_found=true
+                break
+              fi
+            done
+            if [ "$md_found" = "true" ]; then
+              tool=markdownlint
+            else
+              tool=rumdl
+              rumdl_config=shared
+            fi
           fi
           echo "tool=$tool" >> "$GITHUB_OUTPUT"
-          echo "Detected linter: $tool"
+          echo "rumdl_config=$rumdl_config" >> "$GITHUB_OUTPUT"
+          echo "Detected linter: $tool (rumdl_config=${rumdl_config:-n/a})"
 
       - name: Install rumdl
         if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tool.outputs.tool == 'rumdl'
@@ -92,49 +115,31 @@ jobs:
           steps.changed-files.outputs.any_changed == 'true'
           && steps.detect-tool.outputs.tool == 'rumdl'
           && github.event_name == 'pull_request'
+        env:
+          RUMDL_CONFIG_SCOPE: ${{ steps.detect-tool.outputs.rumdl_config }}
         run: |
           TARGET="${MARKDOWN_GLOB:-**/*.md}"
-          echo "Running rumdl --fix on: $TARGET"
-          rumdl check --fix "$TARGET" || true
+          echo "Running rumdl --fix on: $TARGET (config=$RUMDL_CONFIG_SCOPE)"
+          if [ "$RUMDL_CONFIG_SCOPE" = "shared" ]; then
+            rumdl check --config "$SHARED_RUMDL_CONFIG" --fix "$TARGET" || true
+          else
+            rumdl check --fix "$TARGET" || true
+          fi
 
       - name: Run markdownlint with auto-fix (PR only)
+        # markdownlint パスに来るのはローカル設定が存在するケースのみ。
+        # shared fallback は rumdl 側に集約したのでここには無い。
         if: >-
           steps.changed-files.outputs.any_changed == 'true'
           && steps.detect-tool.outputs.tool == 'markdownlint'
           && github.event_name == 'pull_request'
         run: |
-          config_found=false
-          for f in .markdownlint-cli2.jsonc .markdownlint-cli2.yaml \
-            .markdownlint-cli2.json .markdownlint-cli2.cjs \
-            .markdownlint-cli2.mjs .markdownlint.json \
-            .markdownlint.yaml .markdownlint.yml; do
-            if [ -f "$f" ]; then
-              config_found=true
-              break
-            fi
-          done
-
-          if [ "$config_found" = true ]; then
-            echo "Local markdownlint configuration found. Using it."
-
-            if [ -n "$MARKDOWN_GLOB" ]; then
-              echo "Glob provided via input. Overriding configuration globs."
-              markdownlint-cli2 --fix "$MARKDOWN_GLOB" || true
-            else
-              echo "No glob input provided. Using configuration globs."
-              markdownlint-cli2 --fix || true
-            fi
-
-          elif [ -f "$MARKDOWNLINT_CONFIG" ]; then
-            TARGET="${MARKDOWN_GLOB:-**/*.md}"
-            echo "Local configuration not found. Using shared configuration: $MARKDOWNLINT_CONFIG"
-            echo "Target: $TARGET"
-            markdownlint-cli2 --config "$MARKDOWNLINT_CONFIG" --fix "$TARGET" || true
+          if [ -n "$MARKDOWN_GLOB" ]; then
+            echo "Glob provided via input. Overriding configuration globs."
+            markdownlint-cli2 --fix "$MARKDOWN_GLOB" || true
           else
-            TARGET="${MARKDOWN_GLOB:-**/*.md}"
-            echo "No markdownlint configuration found. Using default rules."
-            echo "Target: $TARGET"
-            markdownlint-cli2 --fix "$TARGET" || true
+            echo "Using local markdownlint configuration globs."
+            markdownlint-cli2 --fix || true
           fi
 
       - name: Check for modifications (PR only)
@@ -170,46 +175,24 @@ jobs:
         if: >-
           steps.changed-files.outputs.any_changed == 'true'
           && steps.detect-tool.outputs.tool == 'rumdl'
+        env:
+          RUMDL_CONFIG_SCOPE: ${{ steps.detect-tool.outputs.rumdl_config }}
         run: |
           TARGET="${MARKDOWN_GLOB:-**/*.md}"
-          echo "Running rumdl check on: $TARGET"
-          rumdl check "$TARGET"
+          echo "Running rumdl check on: $TARGET (config=$RUMDL_CONFIG_SCOPE)"
+          if [ "$RUMDL_CONFIG_SCOPE" = "shared" ]; then
+            rumdl check --config "$SHARED_RUMDL_CONFIG" "$TARGET"
+          else
+            rumdl check "$TARGET"
+          fi
 
       - name: Run markdownlint (check only)
         if: >-
           steps.changed-files.outputs.any_changed == 'true'
           && steps.detect-tool.outputs.tool == 'markdownlint'
         run: |
-          config_found=false
-          for f in .markdownlint-cli2.jsonc .markdownlint-cli2.yaml \
-            .markdownlint-cli2.json .markdownlint-cli2.cjs \
-            .markdownlint-cli2.mjs .markdownlint.json \
-            .markdownlint.yaml .markdownlint.yml; do
-            if [ -f "$f" ]; then
-              config_found=true
-              break
-            fi
-          done
-
-          if [ "$config_found" = true ]; then
-            echo "Local markdownlint configuration found. Using it."
-
-            if [ -n "$MARKDOWN_GLOB" ]; then
-              echo "Glob provided via input. Overriding configuration globs."
-              markdownlint-cli2 "$MARKDOWN_GLOB"
-            else
-              echo "No glob input provided. Using configuration globs."
-              markdownlint-cli2
-            fi
-
-          elif [ -f "$MARKDOWNLINT_CONFIG" ]; then
-            TARGET="${MARKDOWN_GLOB:-**/*.md}"
-            echo "Local configuration not found. Using shared configuration: $MARKDOWNLINT_CONFIG"
-            echo "Target: $TARGET"
-            markdownlint-cli2 --config "$MARKDOWNLINT_CONFIG" "$TARGET"
+          if [ -n "$MARKDOWN_GLOB" ]; then
+            markdownlint-cli2 "$MARKDOWN_GLOB"
           else
-            TARGET="${MARKDOWN_GLOB:-**/*.md}"
-            echo "No markdownlint configuration found. Using default rules."
-            echo "Target: $TARGET"
-            markdownlint-cli2 "$TARGET"
+            markdownlint-cli2
           fi
