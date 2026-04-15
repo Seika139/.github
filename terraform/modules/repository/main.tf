@@ -153,7 +153,7 @@ resource "github_repository_ruleset" "this" {
     dynamic "required_status_checks" {
       for_each = length(each.value.required_status_checks) > 0 ? [1] : []
       content {
-        strict_required_status_checks_policy = true
+        strict_required_status_checks_policy = false
         dynamic "required_check" {
           for_each = each.value.required_status_checks
           content {
