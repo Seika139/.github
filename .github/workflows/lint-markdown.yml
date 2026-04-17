@@ -93,13 +93,6 @@ jobs:
           echo "rumdl_config=$rumdl_config" >> "$GITHUB_OUTPUT"
           echo "Detected linter: $tool (rumdl_config=${rumdl_config:-n/a})"
 
-      - name: Install rumdl
-        if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tool.outputs.tool == 'rumdl'
-        run: |
-          curl -LsSf https://github.com/rvben/rumdl/releases/latest/download/rumdl-linux-x86_64.tar.gz \
-            | sudo tar xzf - -C /usr/local/bin
-          rumdl --version
-
       - name: Setup Node.js
         if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tool.outputs.tool == 'markdownlint'
         uses: actions/setup-node@v6
@@ -115,20 +108,14 @@ jobs:
           steps.changed-files.outputs.any_changed == 'true'
           && steps.detect-tool.outputs.tool == 'rumdl'
           && github.event_name == 'pull_request'
-        env:
-          RUMDL_CONFIG_SCOPE: ${{ steps.detect-tool.outputs.rumdl_config }}
-        run: |
-          TARGET="${MARKDOWN_GLOB:-**/*.md}"
-          echo "Running rumdl --fix on: $TARGET (config=$RUMDL_CONFIG_SCOPE)"
-          if [ "$RUMDL_CONFIG_SCOPE" = "shared" ]; then
-            rumdl check --config "$SHARED_RUMDL_CONFIG" --fix "$TARGET" || true
-          else
-            rumdl check --fix "$TARGET" || true
-          fi
+        uses: rvben/rumdl@v0
+        with:
+          path: ${{ env.MARKDOWN_GLOB || '**/*.md' }}
+          config: ${{ steps.detect-tool.outputs.rumdl_config == 'shared' && env.SHARED_RUMDL_CONFIG || '' }}
+          args: --fix
+          fail-on-error: "false"
 
       - name: Run markdownlint with auto-fix (PR only)
-        # markdownlint パスに来るのはローカル設定が存在するケースのみ。
-        # shared fallback は rumdl 側に集約したのでここには無い。
         if: >-
           steps.changed-files.outputs.any_changed == 'true'
           && steps.detect-tool.outputs.tool == 'markdownlint'
@@ -149,7 +136,6 @@ jobs:
           git diff --exit-code || echo "modified=true" >> $GITHUB_OUTPUT
 
       - name: Commit auto-fixes (PR only)
-        # github-actions[bot] がプッシュした再実行ではコミットしないことでループを防ぐ
         if: >-
           steps.changed-files.outputs.any_changed == 'true'
           && github.event_name == 'pull_request'
@@ -158,8 +144,6 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          # Bash の globstar が無効だと "**/*.md" は 1 階層しか拾えずルート直下の .md を取りこぼす。
-          # git のパススペック展開に任せるためクォートして渡し、ルート直下も含むよう '*.md' も追加。
           git ls-files -o -m --exclude-standard -- "**/*.md" "*.md" | xargs -r git add
           git commit -m "fix: auto-fix markdown lint issues"
 
@@ -175,16 +159,10 @@ jobs:
         if: >-
           steps.changed-files.outputs.any_changed == 'true'
           && steps.detect-tool.outputs.tool == 'rumdl'
-        env:
-          RUMDL_CONFIG_SCOPE: ${{ steps.detect-tool.outputs.rumdl_config }}
-        run: |
-          TARGET="${MARKDOWN_GLOB:-**/*.md}"
-          echo "Running rumdl check on: $TARGET (config=$RUMDL_CONFIG_SCOPE)"
-          if [ "$RUMDL_CONFIG_SCOPE" = "shared" ]; then
-            rumdl check --config "$SHARED_RUMDL_CONFIG" "$TARGET"
-          else
-            rumdl check "$TARGET"
-          fi
+        uses: rvben/rumdl@v0
+        with:
+          path: ${{ env.MARKDOWN_GLOB || '**/*.md' }}
+          config: ${{ steps.detect-tool.outputs.rumdl_config == 'shared' && env.SHARED_RUMDL_CONFIG || '' }}
 
       - name: Run markdownlint (check only)
         if: >-
