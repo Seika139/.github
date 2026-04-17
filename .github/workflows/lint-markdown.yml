@@ -110,7 +110,7 @@ jobs:
           && github.event_name == 'pull_request'
         uses: rvben/rumdl@v0
         with:
-          path: ${{ env.MARKDOWN_GLOB || '**/*.md' }}
+          path: ${{ env.MARKDOWN_GLOB || '.' }}
           config: ${{ steps.detect-tool.outputs.rumdl_config == 'shared' && env.SHARED_RUMDL_CONFIG || '' }}
           args: --fix
           fail-on-error: "false"
@@ -161,7 +161,7 @@ jobs:
           && steps.detect-tool.outputs.tool == 'rumdl'
         uses: rvben/rumdl@v0
         with:
-          path: ${{ env.MARKDOWN_GLOB || '**/*.md' }}
+          path: ${{ env.MARKDOWN_GLOB || '.' }}
           config: ${{ steps.detect-tool.outputs.rumdl_config == 'shared' && env.SHARED_RUMDL_CONFIG || '' }}
 
       - name: Run markdownlint (check only)
