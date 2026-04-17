@@ -146,5 +146,13 @@ locals {
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
+
+    "aws-cost-dashboard" = {
+      description        = "AWS SSO 配下の複数アカウントのコストを可視化するローカルダッシュボード"
+      default_branch     = "main"
+      rulesets           = {}
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+    }
   }
 }
