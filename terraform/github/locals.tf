@@ -81,10 +81,10 @@ locals {
       dependabot_secrets = []
     }
     "claw-knowledge" = {
-      description    = "LLMを利用した開発で得た知見をまとめる"
-      visibility     = "private"
-      has_wiki       = false
-      default_branch = "main"
+      description        = "LLMを利用した開発で得た知見をまとめる"
+      visibility         = "private"
+      has_wiki           = false
+      default_branch     = "main"
       rulesets           = {}
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
@@ -132,17 +132,59 @@ locals {
     }
 
     "discord-notify" = {
-      description        = "外部依存ゼロの Discord Webhook クライアント（Python 標準ライブラリのみ）"
-      default_branch     = "main"
-      rulesets           = {}
+      description    = "外部依存ゼロの Discord Webhook クライアント（Python 標準ライブラリのみ）"
+      default_branch = "main"
+      rulesets = {
+        "main-protection" = {
+          target           = "branch"
+          enforcement      = "active"
+          include_refs     = ["~DEFAULT_BRANCH"]
+          exclude_refs     = []
+          deletion         = true
+          non_fast_forward = true
+          pull_request = {
+            required_approving_review_count   = 0
+            dismiss_stale_reviews_on_push     = true
+            required_review_thread_resolution = true
+          }
+          required_status_checks = [
+            "call-common-uv-qualify / setup",
+            "call-common-uv-qualify / lint-and-test",
+            "call-common-uv-qualify / mypy",
+            "call-common-markdownlint / markdownlint",
+          ]
+        }
+      }
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
 
     "repo-sync" = {
-      description        = "ローカル git リポジトリを GitHub と自動同期する CLI（discord-notify 連携）"
-      default_branch     = "main"
-      rulesets           = {}
+      description    = "ローカル git リポジトリを GitHub と自動同期する CLI（discord-notify 連携）"
+      default_branch = "main"
+      rulesets = {
+        "main-protection" = {
+          target           = "branch"
+          enforcement      = "active"
+          include_refs     = ["~DEFAULT_BRANCH"]
+          exclude_refs     = []
+          deletion         = true
+          non_fast_forward = true
+          pull_request = {
+            required_approving_review_count   = 0
+            dismiss_stale_reviews_on_push     = true
+            required_review_thread_resolution = true
+          }
+          required_status_checks = [
+            "call-common-uv-qualify / setup",
+            "call-common-uv-qualify / lint-and-test",
+            "call-common-uv-qualify / mypy",
+            "call-common-markdownlint / markdownlint",
+            "call-common-yamllint / yamllint",
+            "call-common-shellcheck / shellcheck",
+          ]
+        }
+      }
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
