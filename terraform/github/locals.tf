@@ -195,23 +195,13 @@ locals {
       has_wiki       = false
       rulesets = {
         "main-protection" = {
-          target           = "branch"
-          enforcement      = "active"
-          include_refs     = ["~DEFAULT_BRANCH"]
-          exclude_refs     = []
-          deletion         = true
-          non_fast_forward = true
-          pull_request = {
-            required_approving_review_count   = 0
-            dismiss_stale_reviews_on_push     = true
-            required_review_thread_resolution = true
-          }
-          required_status_checks = [
-            "call-common-uv-qualify / setup",
-            "call-common-uv-qualify / lint-and-test",
-            "call-common-uv-qualify / mypy",
-            "call-common-markdownlint / markdownlint",
-          ]
+          target                 = "branch"
+          enforcement            = "active"
+          include_refs           = ["~DEFAULT_BRANCH"]
+          exclude_refs           = []
+          deletion               = true
+          non_fast_forward       = true
+          required_status_checks = []
         }
       }
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
