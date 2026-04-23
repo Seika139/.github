@@ -14,6 +14,33 @@
 
 ## [Unreleased]
 
+### Added
+
+- Terraform リポジトリモジュールで `visibility`（`public`/`private`）と `has_wiki` を指定可能に変更し、private リポジトリを管理対象に追加
+- Terraform の GitHub 管理対象に `dotfiles` / `aws-cost-dashboard` / `claw-knowledge` / `second-brain` / `discord-notify` / `repo-sync` / `zipper` を追加
+- `discord-notify` / `repo-sync` / `zipper` の `main` ブランチに保護ルール（強制プッシュ禁止・削除禁止・必須ステータスチェック）を設定
+- [lint-markdown.yml](.github/workflows/lint-markdown.yml) に `rumdl` 対応を追加し、呼び出し元の設定有無に応じて rumdl / markdownlint-cli2 / 共有 rumdl 設定を自動選択 ([#27](https://github.com/Seika139/.github/pull/27))
+- 共有 rumdl 設定 [.github/config/.rumdl.toml](.github/config/.rumdl.toml) を追加
+- `mise/tasks` の `check` / `format` に rumdl 経由の Markdown lint を追加（`markdownlint-cli2` は fallback として維持）
+- [dependabot.yml](.github/dependabot.yml) に `github-actions` エコシステムの weekly 更新設定を追加
+
+### Changed
+
+- [lint-markdown.yml](.github/workflows/lint-markdown.yml) のデフォルト Linter を `markdownlint-cli2` から `rumdl`（公式 Action `rvben/rumdl@v0`）に切り替え ([#28](https://github.com/Seika139/.github/pull/28), [#31](https://github.com/Seika139/.github/pull/31))
+- Terraform リポジトリモジュールのルールセットで `strict_required_status_checks_policy` を無効化し、base ブランチ追従を必須としない運用に変更
+- GitHub Actions 依存関係を更新: `actions/upload-artifact@v7`, `actions/upload-pages-artifact@v5`, `actions/deploy-pages@v5`
+- uv 依存関係を更新: `ruff`, `mypy`, `pytest`, `ty`, `pygments` など
+
+### Fixed
+
+- [shellcheck.yml](.github/workflows/shellcheck.yml) から存在しない `--rcfile` オプションを削除し、`.shellcheckrc` のルート自動検出に統一 ([#38](https://github.com/Seika139/.github/pull/38))
+- Terraform リポジトリモジュールで個人アカウントの `allow_forking` 変更が API エラーになる問題を `lifecycle.ignore_changes` で回避
+- `rumdl` 実行時の fix/stage 不整合およびネスト設定検出の不具合を修正
+
+### Removed
+
+- 共有設定 [.github/config/.markdownlint-cli2.jsonc](.github/config/.markdownlint-cli2.jsonc) を削除し、rumdl の共有設定に集約
+
 ## [1.1.1] - 2026-02-17
 
 ### Added
