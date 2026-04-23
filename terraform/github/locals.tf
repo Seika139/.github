@@ -189,6 +189,35 @@ locals {
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
 
+    "zipper" = {
+      description    = "パスワードベースの暗号化 ZIP アーカイバ（ファイル名・ディレクトリ名の暗号化対応）"
+      default_branch = "main"
+      has_wiki       = false
+      rulesets = {
+        "main-protection" = {
+          target           = "branch"
+          enforcement      = "active"
+          include_refs     = ["~DEFAULT_BRANCH"]
+          exclude_refs     = []
+          deletion         = true
+          non_fast_forward = true
+          pull_request = {
+            required_approving_review_count   = 0
+            dismiss_stale_reviews_on_push     = true
+            required_review_thread_resolution = true
+          }
+          required_status_checks = [
+            "call-common-uv-qualify / setup",
+            "call-common-uv-qualify / lint-and-test",
+            "call-common-uv-qualify / mypy",
+            "call-common-markdownlint / markdownlint",
+          ]
+        }
+      }
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+    }
+
     "aws-cost-dashboard" = {
       description        = "AWS SSO 配下の複数アカウントのコストを可視化するローカルダッシュボード"
       default_branch     = "main"
