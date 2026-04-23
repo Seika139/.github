@@ -39,7 +39,7 @@
 
 ### Removed
 
-- 共有設定 [.github/config/.markdownlint-cli2.jsonc](.github/config/.markdownlint-cli2.jsonc) を削除し、rumdl の共有設定に集約
+- 共有設定 `.github/config/.markdownlint-cli2.jsonc` を削除し、rumdl の共有設定に集約
 
 ## [1.1.1] - 2026-02-17
 
