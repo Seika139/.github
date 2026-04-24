@@ -41,6 +41,12 @@ variable "has_wiki" {
   default     = true
 }
 
+variable "is_template" {
+  type        = bool
+  description = "Whether the repository is available as a template repository."
+  default     = false
+}
+
 variable "default_branch" {
   type        = string
   description = "The default branch of the repository."
@@ -101,6 +107,7 @@ resource "github_repository" "repo" {
   has_issues             = true
   has_projects           = true
   has_wiki               = var.has_wiki
+  is_template            = var.is_template
   vulnerability_alerts   = true
 
   # 個人リポジトリでは allow_forking の変更が API エラーになるため無視する

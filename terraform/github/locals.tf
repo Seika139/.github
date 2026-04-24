@@ -100,6 +100,27 @@ locals {
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
 
+    "twin-layer-brain-template" = {
+      description    = "Template for twin-layer brain (SQLite fast search + LLM self-expanding wiki)"
+      visibility     = "public"
+      is_template    = true
+      has_wiki       = false
+      default_branch = "main"
+      rulesets = {
+        "main-protection" = {
+          target                 = "branch"
+          enforcement            = "active"
+          include_refs           = ["~DEFAULT_BRANCH"]
+          exclude_refs           = []
+          deletion               = true
+          non_fast_forward       = true
+          required_status_checks = []
+        }
+      }
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+    }
+
     "scribe" = {
       description    = "DeepgramとGeminiを活用した高精度な音声書き起こし・要約ツール"
       default_branch = "main"

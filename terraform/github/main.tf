@@ -8,6 +8,7 @@ module "repository" {
   homepage_url   = try(each.value.homepage_url, "")
   visibility     = try(each.value.visibility, "public")
   has_wiki       = try(each.value.has_wiki, true)
+  is_template    = try(each.value.is_template, false)
   default_branch = try(each.value.default_branch, "main")
   rulesets       = each.value.rulesets
 
