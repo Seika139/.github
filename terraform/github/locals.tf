@@ -122,21 +122,13 @@ locals {
     }
 
     "twin-layer-brain-personal" = {
-      description    = "Personal-scope twin-layer-brain instance (general knowledge; work projects live in separate brains)"
-      visibility     = "private"
-      has_wiki       = false
-      default_branch = "main"
-      rulesets = {
-        "main-protection" = {
-          target                 = "branch"
-          enforcement            = "active"
-          include_refs           = ["~DEFAULT_BRANCH"]
-          exclude_refs           = []
-          deletion               = true
-          non_fast_forward       = true
-          required_status_checks = []
-        }
-      }
+      description        = "Personal-scope twin-layer-brain instance (general knowledge; work projects live in separate brains)"
+      visibility         = "private"
+      has_wiki           = false
+      default_branch     = "main"
+      # GitHub Free では private repo の ruleset は利用不可 (Pro 以上必要)。
+      # 既存 private repo (claw-knowledge / second-brain) と同じく空定義にする。
+      rulesets           = {}
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
