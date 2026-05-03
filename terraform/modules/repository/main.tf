@@ -111,8 +111,11 @@ resource "github_repository" "repo" {
   vulnerability_alerts   = true
 
   # 個人リポジトリでは allow_forking の変更が API エラーになるため無視する
+  # template から派生作成された repo を初回 import する際、template ブロックを
+  # 削除する PATCH に副作用で allow_forking が同梱されエラーになるため、
+  # template も ignore_changes に含める
   lifecycle {
-    ignore_changes = [allow_forking]
+    ignore_changes = [allow_forking, template]
   }
 }
 
