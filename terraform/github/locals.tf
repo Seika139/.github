@@ -282,5 +282,16 @@ locals {
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
+
+    "auto-invest-portfolio" = {
+      description    = "auto-invest の運用状態 (現金 / 保有銘柄 / 取引ログ) を YAML で保持する private データリポジトリ"
+      visibility     = "private"
+      has_wiki       = false
+      default_branch = "main"
+      # GitHub Free では private repo の ruleset は利用不可 (Pro 以上必要)。
+      rulesets           = {}
+      actions_secrets    = []
+      dependabot_secrets = []
+    }
   }
 }
