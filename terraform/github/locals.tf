@@ -260,5 +260,27 @@ locals {
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
+
+    "tlb-investment" = {
+      description    = "Personal-scope twin-layer-brain instance (for investment)"
+      visibility     = "private"
+      has_wiki       = false
+      default_branch = "main"
+      # GitHub Free では private repo の ruleset は利用不可 (Pro 以上必要)。
+      rulesets           = {}
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+    }
+
+    "auto-invest" = {
+      description    = ""
+      visibility     = "private"
+      has_wiki       = false
+      default_branch = "main"
+      # GitHub Free では private repo の ruleset は利用不可 (Pro 以上必要)。
+      rulesets           = {}
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+    }
   }
 }
