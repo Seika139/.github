@@ -72,3 +72,14 @@ import {
   to = module.repository["scribe"].github_repository_ruleset.this["main-protection"]
   id = "scribe:main-protection"
 }
+
+# tlb-investment
+import {
+  to = module.repository["tlb-investment"].github_repository.repo
+  id = "tlb-investment"
+}
+
+import {
+  to = module.repository["tlb-investment"].github_branch_default.default
+  id = "tlb-investment"
+}
