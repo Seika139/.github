@@ -8,11 +8,11 @@ dependencies = []
 
 [dependency-groups]
 dev = [
-  "mypy>=1.20.2",
+  "mypy>=2.0.0",
   "ruff>=0.15.12",
   "pytest>=9.0.3",
   "vulture>=2.14",
-  "ty>=0.0.32",
+  "ty>=0.0.35",
   "yamllint>=1.38.0",
 ]
 
