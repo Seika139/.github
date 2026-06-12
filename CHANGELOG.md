@@ -17,8 +17,17 @@
 
 ### Added
 
-- Terraform の GitHub 管理対象に `airline-sale-monitor` を private リポジトリとして追加
+- Terraform の GitHub 管理対象に複数のリポジトリを追加: `twin-layer-brain-template`（public / テンプレート） / `twin-layer-brain-personal` / `tlb-cats-eye` / `tlb-investment` / `auto-invest` / `auto-invest-portfolio` / `airline-sale-monitor`（private） / `llm-runner`（public）
+- Terraform リポジトリモジュールで `is_template` を指定可能に変更し、テンプレートリポジトリを管理対象に追加
 - `mise.toml` に `[tools]` セクションを追加し、`dotenvx` と `terraform` を mise 管理に変更
+
+### Changed
+
+- uv 依存関係を更新: `mypy`, `ruff`, `ty`
+
+### Fixed
+
+- テンプレート由来リポジトリの初回 import 時に `allow_forking` が API エラーになる問題を `lifecycle.ignore_changes` に `template` を追加して回避
 
 ## [1.2.0] - 2026-04-24
 
