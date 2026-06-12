@@ -293,5 +293,16 @@ locals {
       actions_secrets    = []
       dependabot_secrets = []
     }
+
+    "airline-sale-monitor" = {
+      description    = "航空会社の国内線セールを定期監視して Discord に通知する"
+      visibility     = "private"
+      has_wiki       = false
+      default_branch = "main"
+      # GitHub Free では private repo の ruleset は利用不可 (Pro 以上必要)。
+      rulesets           = {}
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+    }
   }
 }

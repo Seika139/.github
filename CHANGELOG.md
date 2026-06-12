@@ -15,6 +15,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Terraform の GitHub 管理対象に `airline-sale-monitor` を private リポジトリとして追加
+
 ## [1.2.0] - 2026-04-24
 
 ### Added
