@@ -18,6 +18,7 @@
 ### Added
 
 - Terraform の GitHub 管理対象に `airline-sale-monitor` を private リポジトリとして追加
+- `mise.toml` に `[tools]` セクションを追加し、`dotenvx` と `terraform` を mise 管理に変更
 
 ## [1.2.0] - 2026-04-24
 
