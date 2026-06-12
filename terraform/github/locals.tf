@@ -304,5 +304,26 @@ locals {
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
+
+    "llm-runner" = {
+      description    = "claude / codex を CLI または SDK 経由で headless 実行する薄いランナー"
+      default_branch = "main"
+      has_wiki       = false
+      # CI 未導入のため zipper と同じ最小保護。CI 追加時に discord-notify 同等の
+      # required_status_checks を設定する
+      rulesets = {
+        "main-protection" = {
+          target                 = "branch"
+          enforcement            = "active"
+          include_refs           = ["~DEFAULT_BRANCH"]
+          exclude_refs           = []
+          deletion               = true
+          non_fast_forward       = true
+          required_status_checks = []
+        }
+      }
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+    }
   }
 }
