@@ -16,8 +16,8 @@
   <a href="https://github.com/Seika139/.github/actions/workflows/shellcheck.yml">
     <img alt="ShellCheck" src="https://github.com/Seika139/.github/actions/workflows/shellcheck.yml/badge.svg">
   </a>
-  <a href="https://github.com/Seika139/.github/releases/tag/v1.2.0">
-    <img alt="version" src="https://img.shields.io/badge/version-v1.2.0-white.svg">
+  <a href="https://github.com/Seika139/.github/releases/tag/v1.3.0">
+    <img alt="version" src="https://img.shields.io/badge/version-v1.3.0-white.svg">
   </a>
 </div>
 
