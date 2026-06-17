@@ -4,7 +4,6 @@
 #MISE shell="bash -c"
 #MISE quiet=true
 #MISE hide=true
-#MISE depends = ["chmod-scripts"]
 
 set -euo pipefail
 
