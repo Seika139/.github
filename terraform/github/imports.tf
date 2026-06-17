@@ -225,6 +225,17 @@ import {
   id = "twin-layer-brain-template:15523789"
 }
 
+# web-change-monitor
+import {
+  to = module.repository["web-change-monitor"].github_repository.repo
+  id = "web-change-monitor"
+}
+
+import {
+  to = module.repository["web-change-monitor"].github_branch_default.default
+  id = "web-change-monitor"
+}
+
 # zipper
 import {
   to = module.repository["zipper"].github_repository.repo
