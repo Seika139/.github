@@ -25,6 +25,17 @@ import {
   id = "airline-sale-monitor"
 }
 
+# alev
+import {
+  to = module.repository["alev"].github_repository.repo
+  id = "alev"
+}
+
+import {
+  to = module.repository["alev"].github_branch_default.default
+  id = "alev"
+}
+
 # auto-invest
 import {
   to = module.repository["auto-invest"].github_repository.repo
