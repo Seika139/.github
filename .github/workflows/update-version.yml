@@ -35,12 +35,12 @@ jobs:
       PUSH_AND_RUN_WORKFLOW_TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Checkout shared .github scripts
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: ${{ github.repository_owner }}/.github
           path: .github-config

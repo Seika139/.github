@@ -16,7 +16,7 @@ jobs:
       YAMLLINT_CONFIG: .yamllint.yml
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Detect relevant changes
         id: changed-files

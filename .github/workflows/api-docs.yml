@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # 自身のprivateリポジトリからパッケージを取得する場合の認証設定
       - name: Configure git auth
