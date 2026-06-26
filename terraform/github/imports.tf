@@ -80,6 +80,17 @@ import {
   id = "claw-knowledge"
 }
 
+# cookie-clicker
+import {
+  to = module.repository["cookie-clicker"].github_repository.repo
+  id = "cookie-clicker"
+}
+
+import {
+  to = module.repository["cookie-clicker"].github_branch_default.default
+  id = "cookie-clicker"
+}
+
 # discord-notify
 import {
   to = module.repository["discord-notify"].github_repository.repo
