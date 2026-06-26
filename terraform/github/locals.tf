@@ -350,6 +350,7 @@ locals {
 
     "cookie-clicker" = {
       description    = "タイムアタックとスコア共有付きのクッキークリッカー（alev で自動開発）"
+      homepage_url   = "https://cookie-clicker-woad.vercel.app"
       visibility     = "private"
       has_wiki       = false
       default_branch = "main"
