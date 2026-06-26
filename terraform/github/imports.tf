@@ -80,6 +80,17 @@ import {
   id = "claw-knowledge"
 }
 
+# cookie-clicker
+import {
+  to = module.repository["cookie-clicker"].github_repository.repo
+  id = "cookie-clicker"
+}
+
+import {
+  to = module.repository["cookie-clicker"].github_branch_default.default
+  id = "cookie-clicker"
+}
+
 # discord-notify
 import {
   to = module.repository["discord-notify"].github_repository.repo
@@ -261,15 +272,4 @@ import {
 import {
   to = module.repository["zipper"].github_repository_ruleset.this["main-protection"]
   id = "zipper:15469687"
-}
-
-# cookie-clicker
-import {
-  to = module.repository["cookie-clicker"].github_repository.repo
-  id = "cookie-clicker"
-}
-
-import {
-  to = module.repository["cookie-clicker"].github_branch_default.default
-  id = "cookie-clicker"
 }
