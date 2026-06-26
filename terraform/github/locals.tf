@@ -261,6 +261,37 @@ locals {
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
 
+    "ccusage-report" = {
+      description    = "ccusage の JSON 出力をモデル別×日次に集計し、自己完結 HTML レポートを生成する個人ツール"
+      default_branch = "main"
+      rulesets = {
+        "main-protection" = {
+          target           = "branch"
+          enforcement      = "active"
+          include_refs     = ["~DEFAULT_BRANCH"]
+          exclude_refs     = []
+          deletion         = true
+          non_fast_forward = true
+          pull_request = {
+            required_approving_review_count   = 0
+            dismiss_stale_reviews_on_push     = true
+            required_review_thread_resolution = true
+          }
+          # uv-qualify は python-version matrix ["3.13"] のため check 名に "(3.13)" が付く
+          required_status_checks = [
+            "call-common-uv-qualify (3.13) / setup",
+            "call-common-uv-qualify (3.13) / lint-and-test",
+            "call-common-uv-qualify (3.13) / mypy",
+            "call-common-markdownlint / markdownlint",
+            "call-common-yamllint / yamllint",
+            "call-common-shellcheck / shellcheck",
+          ]
+        }
+      }
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+    }
+
     "tlb-investment" = {
       description    = "Personal-scope twin-layer-brain instance (for investment)"
       visibility     = "private"

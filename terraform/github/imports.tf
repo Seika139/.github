@@ -69,6 +69,18 @@ import {
   id = "aws-cost-dashboard"
 }
 
+# ccusage-report
+# ruleset (main-protection) は未作成のため import せず、apply で新規作成する
+import {
+  to = module.repository["ccusage-report"].github_repository.repo
+  id = "ccusage-report"
+}
+
+import {
+  to = module.repository["ccusage-report"].github_branch_default.default
+  id = "ccusage-report"
+}
+
 # claw-knowledge
 import {
   to = module.repository["claw-knowledge"].github_repository.repo
