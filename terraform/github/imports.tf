@@ -70,7 +70,6 @@ import {
 }
 
 # ccusage-report
-# ruleset (main-protection) は未作成のため import せず、apply で新規作成する
 import {
   to = module.repository["ccusage-report"].github_repository.repo
   id = "ccusage-report"
@@ -79,6 +78,11 @@ import {
 import {
   to = module.repository["ccusage-report"].github_branch_default.default
   id = "ccusage-report"
+}
+
+import {
+  to = module.repository["ccusage-report"].github_repository_ruleset.this["main-protection"]
+  id = "ccusage-report:18161753"
 }
 
 # claw-knowledge
