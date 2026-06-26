@@ -261,6 +261,27 @@ locals {
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
 
+    "ccusage-report" = {
+      description    = "ccusage の JSON 出力をモデル別×日次に集計し、自己完結 HTML レポートを生成する個人ツール"
+      default_branch = "main"
+      # main への直接 push を許可するため PR 必須・required_status_checks は設けず、
+      # force-push 禁止 (non_fast_forward) とブランチ削除禁止 (deletion) のみ残す
+      # 個人ツールのため zipper / twin-layer-brain-template と同じ最小保護
+      rulesets = {
+        "main-protection" = {
+          target                 = "branch"
+          enforcement            = "active"
+          include_refs           = ["~DEFAULT_BRANCH"]
+          exclude_refs           = []
+          deletion               = true
+          non_fast_forward       = true
+          required_status_checks = []
+        }
+      }
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+    }
+
     "tlb-investment" = {
       description    = "Personal-scope twin-layer-brain instance (for investment)"
       visibility     = "private"

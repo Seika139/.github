@@ -69,6 +69,22 @@ import {
   id = "aws-cost-dashboard"
 }
 
+# ccusage-report
+import {
+  to = module.repository["ccusage-report"].github_repository.repo
+  id = "ccusage-report"
+}
+
+import {
+  to = module.repository["ccusage-report"].github_branch_default.default
+  id = "ccusage-report"
+}
+
+import {
+  to = module.repository["ccusage-report"].github_repository_ruleset.this["main-protection"]
+  id = "ccusage-report:18161753"
+}
+
 # claw-knowledge
 import {
   to = module.repository["claw-knowledge"].github_repository.repo
