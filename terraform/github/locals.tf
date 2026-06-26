@@ -264,28 +264,18 @@ locals {
     "ccusage-report" = {
       description    = "ccusage の JSON 出力をモデル別×日次に集計し、自己完結 HTML レポートを生成する個人ツール"
       default_branch = "main"
+      # main への直接 push を許可するため PR 必須・required_status_checks は設けず、
+      # force-push 禁止 (non_fast_forward) とブランチ削除禁止 (deletion) のみ残す
+      # 個人ツールのため zipper / twin-layer-brain-template と同じ最小保護
       rulesets = {
         "main-protection" = {
-          target           = "branch"
-          enforcement      = "active"
-          include_refs     = ["~DEFAULT_BRANCH"]
-          exclude_refs     = []
-          deletion         = true
-          non_fast_forward = true
-          pull_request = {
-            required_approving_review_count   = 0
-            dismiss_stale_reviews_on_push     = true
-            required_review_thread_resolution = true
-          }
-          # uv-qualify は python-version matrix ["3.13"] のため check 名に "(3.13)" が付く
-          required_status_checks = [
-            "call-common-uv-qualify (3.13) / setup",
-            "call-common-uv-qualify (3.13) / lint-and-test",
-            "call-common-uv-qualify (3.13) / mypy",
-            "call-common-markdownlint / markdownlint",
-            "call-common-yamllint / yamllint",
-            "call-common-shellcheck / shellcheck",
-          ]
+          target                 = "branch"
+          enforcement            = "active"
+          include_refs           = ["~DEFAULT_BRANCH"]
+          exclude_refs           = []
+          deletion               = true
+          non_fast_forward       = true
+          required_status_checks = []
         }
       }
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
