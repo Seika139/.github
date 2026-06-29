@@ -36,6 +36,17 @@ import {
   id = "alev"
 }
 
+# asobi-ticket-monitor
+import {
+  to = module.repository["asobi-ticket-monitor"].github_repository.repo
+  id = "asobi-ticket-monitor"
+}
+
+import {
+  to = module.repository["asobi-ticket-monitor"].github_branch_default.default
+  id = "asobi-ticket-monitor"
+}
+
 # auto-invest
 import {
   to = module.repository["auto-invest"].github_repository.repo
