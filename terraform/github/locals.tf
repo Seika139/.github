@@ -391,5 +391,17 @@ locals {
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
+
+    "vote-cinderella" = {
+      description    = "シンデレラガール総選挙2026 のデイリーミッション/スポットチェックインで投票券を自動回収する Playwright ワークフロー"
+      visibility     = "private"
+      has_wiki       = false
+      default_branch = "main"
+      # GitHub Free では private repo の ruleset は利用不可 (Pro 以上必要)。
+      rulesets = {}
+      # systemd でローカル実行し GitHub Actions を使わないため secret は設定しない。
+      actions_secrets    = []
+      dependabot_secrets = []
+    }
   }
 }

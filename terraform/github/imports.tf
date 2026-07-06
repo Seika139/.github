@@ -274,6 +274,17 @@ import {
   id = "twin-layer-brain-template:15523789"
 }
 
+# vote-cinderella
+import {
+  to = module.repository["vote-cinderella"].github_repository.repo
+  id = "vote-cinderella"
+}
+
+import {
+  to = module.repository["vote-cinderella"].github_branch_default.default
+  id = "vote-cinderella"
+}
+
 # web-change-monitor
 import {
   to = module.repository["web-change-monitor"].github_repository.repo
