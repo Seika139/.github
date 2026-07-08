@@ -11,6 +11,11 @@ name: Lint Markdown
         required: false
         type: string
         # default を削除（空なら空として扱うため）
+      runner:
+        description: "ジョブを実行する runner ラベル。self-hosted 化する呼び出し側だけ上書きする。"
+        required: false
+        type: string
+        default: "ubuntu-latest"
     secrets:
       PUSH_AND_RUN_WORKFLOW_TOKEN:
         required: false
@@ -27,7 +32,7 @@ env:
 
 jobs:
   markdownlint:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7

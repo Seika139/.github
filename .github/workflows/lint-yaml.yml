@@ -5,13 +5,19 @@ name: Lint yaml
   push:
   pull_request:
   workflow_call:
+    inputs:
+      runner:
+        description: "ジョブを実行する runner ラベル。self-hosted 化する呼び出し側だけ上書きする。"
+        required: false
+        type: string
+        default: "ubuntu-latest"
 
 permissions:
   contents: read
 
 jobs:
   yamllint:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
     env:
       YAMLLINT_CONFIG: .yamllint.yml
     steps:
