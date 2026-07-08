@@ -32,7 +32,7 @@ env:
 
 jobs:
   markdownlint:
-    runs-on: ${{ inputs.runner }}
+    runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7

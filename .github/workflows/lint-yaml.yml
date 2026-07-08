@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   yamllint:
-    runs-on: ${{ inputs.runner }}
+    runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
     env:
       YAMLLINT_CONFIG: .yamllint.yml
     steps:
