@@ -25,15 +25,15 @@ extend-exclude = ["sample_scripts/**"]
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-  "CPY001",
-  "COM812",
+  "missing-copyright-notice",
+  "missing-trailing-comma",
   # D系(Docstring)のポリシーは外部公開する部分は unignore していきたい
-  "D100", # パブリックモジュールの docstring がない
-  "D103", # パブリック関数の docstring がない
-  "D203", # D211 と競合するため無効化
-  "D213", # D212 と競合するため無効化
-  "D415", # Docstring の最初の文がピリオドで終わっていない（日本語では意味がないため無効化）
-  "T201", # print 文の使用を禁止
+  "undocumented-public-module", # パブリックモジュールの docstring がない
+  "undocumented-public-function", # パブリック関数の docstring がない
+  "incorrect-blank-line-before-class", # D211 と競合するため無効化
+  "multi-line-summary-second-line", # D212 と競合するため無効化
+  "missing-terminal-punctuation", # Docstring の最初の文がピリオドで終わっていない（日本語では意味がないため無効化）
+  "print", # print 文の使用を禁止
 ]
 
 [tool.ruff.lint.flake8-tidy-imports]
