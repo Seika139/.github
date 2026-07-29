@@ -4,7 +4,7 @@ import argparse
 import pathlib
 import re
 import shutil
-import subprocess  # noqa: S404
+import subprocess  # ruff:ignore[suspicious-subprocess-import]
 import sys
 
 VERSION_PATTERN = re.compile(r'(?m)^version\s*=\s*"([^"]+)"')
@@ -41,7 +41,7 @@ def get_latest_tag() -> str | None:
 
     try:
         # v* 形式のタグを取得する
-        result = subprocess.run(  # noqa: S603
+        result = subprocess.run(  # ruff:ignore[subprocess-without-shell-equals-true]
             [git_path, "tag", "--list", "v*", "--sort=-v:refname"],
             capture_output=True,
             text=True,
@@ -78,7 +78,7 @@ def read_current_version(path: pathlib.Path) -> str:
 
 def bump_version(current: str, bump: str) -> str:
     parts = current.split(".")
-    if len(parts) < 3:  # noqa: PLR2004
+    if len(parts) < 3:  # ruff:ignore[magic-value-comparison]
         print(
             f"現在のバージョン {current} が SemVer 形式ではありません。",
             file=sys.stderr,

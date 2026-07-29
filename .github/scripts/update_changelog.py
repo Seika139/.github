@@ -6,7 +6,10 @@ import pathlib
 import re
 import shutil
 import sys
-from subprocess import CalledProcessError, check_output  # noqa: S404
+from subprocess import (  # ruff:ignore[suspicious-subprocess-import]
+    CalledProcessError,
+    check_output,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -99,7 +102,7 @@ def _infer_base_url_from_env() -> str | None:
         return None
 
     try:
-        remote = check_output(  # noqa: S603
+        remote = check_output(  # ruff:ignore[subprocess-without-shell-equals-true]
             [git_path, "config", "--get", "remote.origin.url"], text=True
         ).strip()
     except (CalledProcessError, FileNotFoundError):
@@ -137,7 +140,7 @@ def _render_tagged_body(entries: list[tuple[str, str]]) -> str:
     return body
 
 
-def _update_tagged_releases(text: str, version: str) -> str:  # noqa: PLR0911 PLR0912 C901
+def _update_tagged_releases(text: str, version: str) -> str:  # ruff:ignore[too-many-return-statements, too-many-branches, complex-structure]
     """`## Tagged Releases` の差分リンクを最新タグにあわせて更新する。
 
     期待するフォーマット:
@@ -180,7 +183,7 @@ def _update_tagged_releases(text: str, version: str) -> str:  # noqa: PLR0911 PL
         return text[: match.start("body")] + new_body + text[match.end("body") :]
 
     # 未リリース + 1件の既存リリースが必要
-    if len(entries) < 2:  # noqa: PLR2004
+    if len(entries) < 2:  # ruff:ignore[magic-value-comparison]
         return text
 
     base_url = None
