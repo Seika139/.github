@@ -232,11 +232,12 @@ jobs:
       # setup ジョブで決定された環境変数名（DOTENV_PRIVATE_KEY または DOTENV_PRIVATE_KEY_XXX）を使用する。
       - name: Run ruff check
         if: needs.setup.outputs.ruff == 'true'
+        # この .github ディレクトリを checkout している .github-config を ruff check から除外して実行する
         run: |
           if [ -n "${{ needs.setup.outputs.dotenvx_run_prefix }}" ]; then
-            ${{ needs.setup.outputs.dotenvx_run_prefix }} uv run ruff check .
+            ${{ needs.setup.outputs.dotenvx_run_prefix }} uv run ruff check . --extend-exclude .github-config
           else
-            uv run ruff check .
+            uv run ruff check . --extend-exclude .github-config
           fi
         env:
           ${{ needs.setup.outputs.dotenvx_key_name || '_UNUSED_DOTENV_KEY' }}: ${{ secrets.DOTENV_PRIVATE_KEY }}
