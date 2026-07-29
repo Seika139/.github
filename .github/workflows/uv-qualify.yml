@@ -59,7 +59,7 @@ jobs:
     # - any_changed: Python関連ファイルに変更があったか（false なら後続ジョブはスキップ）
     # - ruff/mypy/ty/pytest: 各ツールがプロジェクトで利用可能か
     # - mypy_use_dot: mypy を "mypy ." で実行するか "mypy" で実行するか
-    # - dotenvx_run_prefix: 暗号化された.envファイルを復号するためのコマンドプレフィックス
+    # - dotenvx_run_file: 暗号化された .env ファイルのパス（dotenvx 復号が必要な場合のみ設定）
     # - dotenvx_key_name: 復号に使用する環境変数名（DOTENV_PRIVATE_KEY または DOTENV_PRIVATE_KEY_XXX）
     outputs:
       any_changed: ${{ steps.changed-files.outputs.any_changed }}
@@ -68,7 +68,7 @@ jobs:
       mypy_use_dot: ${{ steps.mypy-target.outputs.use_dot }}
       ty: ${{ steps.detect-tools.outputs.ty }}
       pytest: ${{ steps.detect-tools.outputs.pytest }}
-      dotenvx_run_prefix: ${{ steps.dotenvx.outputs.run_prefix }}
+      dotenvx_run_file: ${{ steps.dotenvx.outputs.run_file }}
       dotenvx_key_name: ${{ steps.dotenvx.outputs.key_name || '_UNUSED_DOTENV_KEY' }}
     steps:
       - name: Checkout repository
@@ -108,10 +108,16 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         env:
           DOTENV_PRIVATE_KEY: ${{ secrets.DOTENV_PRIVATE_KEY }}
+          ENV_FILE_INPUT: ${{ inputs.dotenvx-env-file || '.env' }}
         run: |
-          ENV_FILE_INPUT="${{ inputs['dotenvx-env-file'] || '.env' }}"
+          # 改行入りの値は $GITHUB_OUTPUT の行指向フォーマットを壊し output を偽装できるため拒否する
+          if [[ "$ENV_FILE_INPUT" == *$'\n'* ]]; then
+            echo "dotenvx-env-file に改行を含めることはできません: $ENV_FILE_INPUT" >&2
+            exit 1
+          fi
+
           if [ -z "$ENV_FILE_INPUT" ] || [ ! -f "$ENV_FILE_INPUT" ]; then
-            echo "run_prefix=" >> "$GITHUB_OUTPUT"
+            echo "run_file=" >> "$GITHUB_OUTPUT"
             # env の動的キーに空文字列を指定すると GitHub Actions がエラーになるため、
             # 使用しない場合でも有効なキー名を設定する（値は空なので影響なし）
             echo "key_name=_UNUSED_DOTENV_KEY" >> "$GITHUB_OUTPUT"
@@ -119,7 +125,7 @@ jobs:
           fi
 
           if ! grep -Eq 'DOTENV_PUBLIC_KEY|encrypted:' "$ENV_FILE_INPUT"; then
-            echo "run_prefix=" >> "$GITHUB_OUTPUT"
+            echo "run_file=" >> "$GITHUB_OUTPUT"
             echo "key_name=_UNUSED_DOTENV_KEY" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -149,7 +155,7 @@ jobs:
             key_name="DOTENV_PRIVATE_KEY"
           fi
 
-          echo "run_prefix=npx --yes @dotenvx/dotenvx run -f $ENV_FILE_INPUT --" >> "$GITHUB_OUTPUT"
+          echo "run_file=$ENV_FILE_INPUT" >> "$GITHUB_OUTPUT"
           echo "key_name=$key_name" >> "$GITHUB_OUTPUT"
 
       - name: Set up UV
@@ -167,24 +173,26 @@ jobs:
         id: detect-tools
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          if [ -n "${{ steps.dotenvx.outputs.run_prefix }}" ]; then
-            ${{ steps.dotenvx.outputs.run_prefix }} uv run python .github-config/.github/scripts/detect_quality_tools.py --pyproject pyproject.toml
+          if [ -n "$DOTENVX_RUN_FILE" ]; then
+            npx --yes @dotenvx/dotenvx run -f "$DOTENVX_RUN_FILE" -- uv run python .github-config/.github/scripts/detect_quality_tools.py --pyproject pyproject.toml
           else
             uv run python .github-config/.github/scripts/detect_quality_tools.py --pyproject pyproject.toml
           fi
         env:
+          DOTENVX_RUN_FILE: ${{ steps.dotenvx.outputs.run_file }}
           ${{ steps.dotenvx.outputs.key_name || '_UNUSED_DOTENV_KEY' }}: ${{ secrets.DOTENV_PRIVATE_KEY }}
 
       - name: Decide mypy target
         id: mypy-target
         if: steps.changed-files.outputs.any_changed == 'true' && steps.detect-tools.outputs.mypy == 'true'
         run: |
-          if [ -n "${{ steps.dotenvx.outputs.run_prefix }}" ]; then
-            ${{ steps.dotenvx.outputs.run_prefix }} uv run python .github-config/.github/scripts/decide_mypy_target.py --pyproject pyproject.toml
+          if [ -n "$DOTENVX_RUN_FILE" ]; then
+            npx --yes @dotenvx/dotenvx run -f "$DOTENVX_RUN_FILE" -- uv run python .github-config/.github/scripts/decide_mypy_target.py --pyproject pyproject.toml
           else
             uv run python .github-config/.github/scripts/decide_mypy_target.py --pyproject pyproject.toml
           fi
         env:
+          DOTENVX_RUN_FILE: ${{ steps.dotenvx.outputs.run_file }}
           ${{ steps.dotenvx.outputs.key_name || '_UNUSED_DOTENV_KEY' }}: ${{ secrets.DOTENV_PRIVATE_KEY }}
 
   # ==========================================================================
@@ -227,31 +235,33 @@ jobs:
       - name: Sync dependencies
         run: uv sync --frozen --all-extras
 
-      # dotenvx_run_prefix が設定されている場合は、暗号化された .env を復号してから実行する。
+      # DOTENVX_RUN_FILE が設定されている場合は、dotenvx で暗号化された .env を復号してから実行する。
       # env の動的キー (${{ needs.setup.outputs.dotenvx_key_name || '_UNUSED_DOTENV_KEY' }}) は GitHub Actions の機能で、
       # setup ジョブで決定された環境変数名（DOTENV_PRIVATE_KEY または DOTENV_PRIVATE_KEY_XXX）を使用する。
       - name: Run ruff check
         if: needs.setup.outputs.ruff == 'true'
         # この .github ディレクトリを checkout している .github-config を ruff check から除外して実行する
         run: |
-          if [ -n "${{ needs.setup.outputs.dotenvx_run_prefix }}" ]; then
-            ${{ needs.setup.outputs.dotenvx_run_prefix }} uv run ruff check . --extend-exclude .github-config
+          if [ -n "$DOTENVX_RUN_FILE" ]; then
+            npx --yes @dotenvx/dotenvx run -f "$DOTENVX_RUN_FILE" -- uv run ruff check . --extend-exclude .github-config
           else
             uv run ruff check . --extend-exclude .github-config
           fi
         env:
+          DOTENVX_RUN_FILE: ${{ needs.setup.outputs.dotenvx_run_file }}
           ${{ needs.setup.outputs.dotenvx_key_name || '_UNUSED_DOTENV_KEY' }}: ${{ secrets.DOTENV_PRIVATE_KEY }}
 
       - name: Run ty
         if: needs.setup.outputs.ty == 'true'
         # この .github ディレクトリを checkout している .github-config を ty check から除外して実行する
         run: |
-          if [ -n "${{ needs.setup.outputs.dotenvx_run_prefix }}" ]; then
-            ${{ needs.setup.outputs.dotenvx_run_prefix }} uv run ty check . --error-on-warning --exclude ".github-config/**"
+          if [ -n "$DOTENVX_RUN_FILE" ]; then
+            npx --yes @dotenvx/dotenvx run -f "$DOTENVX_RUN_FILE" -- uv run ty check . --error-on-warning --exclude ".github-config/**"
           else
             uv run ty check . --error-on-warning --exclude ".github-config/**"
           fi
         env:
+          DOTENVX_RUN_FILE: ${{ needs.setup.outputs.dotenvx_run_file }}
           ${{ needs.setup.outputs.dotenvx_key_name || '_UNUSED_DOTENV_KEY' }}: ${{ secrets.DOTENV_PRIVATE_KEY }}
 
       # vulture の導入を検討しているが、100%検知ができるわけではないので一旦保留
@@ -269,12 +279,13 @@ jobs:
       - name: Run pytest
         if: needs.setup.outputs.pytest == 'true'
         run: |
-          if [ -n "${{ needs.setup.outputs.dotenvx_run_prefix }}" ]; then
-            ${{ needs.setup.outputs.dotenvx_run_prefix }} uv run pytest tests/
+          if [ -n "$DOTENVX_RUN_FILE" ]; then
+            npx --yes @dotenvx/dotenvx run -f "$DOTENVX_RUN_FILE" -- uv run pytest tests/
           else
             uv run pytest tests/
           fi
         env:
+          DOTENVX_RUN_FILE: ${{ needs.setup.outputs.dotenvx_run_file }}
           ${{ needs.setup.outputs.dotenvx_key_name || '_UNUSED_DOTENV_KEY' }}: ${{ secrets.DOTENV_PRIVATE_KEY }}
 
   # ==========================================================================
@@ -311,11 +322,11 @@ jobs:
 
       - name: Run mypy
         run: |
-          if [ -n "${{ needs.setup.outputs.dotenvx_run_prefix }}" ]; then
+          if [ -n "$DOTENVX_RUN_FILE" ]; then
             if [[ "${{ needs.setup.outputs.mypy_use_dot }}" == "true" ]]; then
-              ${{ needs.setup.outputs.dotenvx_run_prefix }} uv run mypy .
+              npx --yes @dotenvx/dotenvx run -f "$DOTENVX_RUN_FILE" -- uv run mypy .
             else
-              ${{ needs.setup.outputs.dotenvx_run_prefix }} uv run mypy
+              npx --yes @dotenvx/dotenvx run -f "$DOTENVX_RUN_FILE" -- uv run mypy
             fi
           else
             if [[ "${{ needs.setup.outputs.mypy_use_dot }}" == "true" ]]; then
@@ -325,4 +336,5 @@ jobs:
             fi
           fi
         env:
+          DOTENVX_RUN_FILE: ${{ needs.setup.outputs.dotenvx_run_file }}
           ${{ needs.setup.outputs.dotenvx_key_name || '_UNUSED_DOTENV_KEY' }}: ${{ secrets.DOTENV_PRIVATE_KEY }}
