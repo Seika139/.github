@@ -113,7 +113,7 @@ jobs:
           steps.changed-files.outputs.any_changed == 'true'
           && steps.detect-tool.outputs.tool == 'rumdl'
           && github.event_name == 'pull_request'
-        uses: rvben/rumdl@v0.2.47
+        uses: rvben/rumdl@v0.2.52
         with:
           path: ${{ env.MARKDOWN_GLOB || '.' }}
           config: ${{ steps.detect-tool.outputs.rumdl_config == 'shared' && env.SHARED_RUMDL_CONFIG || '' }}
@@ -164,7 +164,7 @@ jobs:
         if: >-
           steps.changed-files.outputs.any_changed == 'true'
           && steps.detect-tool.outputs.tool == 'rumdl'
-        uses: rvben/rumdl@v0.2.47
+        uses: rvben/rumdl@v0.2.52
         with:
           path: ${{ env.MARKDOWN_GLOB || '.' }}
           config: ${{ steps.detect-tool.outputs.rumdl_config == 'shared' && env.SHARED_RUMDL_CONFIG || '' }}
