@@ -103,6 +103,22 @@ variable "integration_id" {
   default     = 15368
 }
 
+locals {
+  default_branch_ref = "refs/heads/${var.default_branch}"
+
+  # 既定ブランチを実際に保護している ruleset の required_status_checks だけを集める。
+  # enforcement が disabled のもの、branch 以外を対象にするもの、既定ブランチを
+  # 含まない/除外しているものは auto-merge の待機対象にならないため数えない。
+  active_default_branch_checks = flatten([
+    for r in var.rulesets : r.required_status_checks
+    if r.target == "branch"
+    && r.enforcement == "active"
+    && (contains(r.include_refs, "~DEFAULT_BRANCH") || contains(r.include_refs, local.default_branch_ref))
+    && !contains(r.exclude_refs, "~DEFAULT_BRANCH")
+    && !contains(r.exclude_refs, local.default_branch_ref)
+  ])
+}
+
 resource "github_repository" "repo" {
   name                   = var.name
   description            = var.description
@@ -130,8 +146,8 @@ resource "github_repository" "repo" {
     }
 
     precondition {
-      condition     = !var.allow_auto_merge || length(flatten([for r in var.rulesets : r.required_status_checks])) > 0
-      error_message = "allow_auto_merge を有効にするには required_status_checks を 1 つ以上持つ ruleset が必要です。待機対象が無いと auto-merge は即時マージと同義になります。"
+      condition     = !var.allow_auto_merge || length(local.active_default_branch_checks) > 0
+      error_message = "allow_auto_merge を有効にするには、既定ブランチを保護する active な branch ruleset に required_status_checks が 1 つ以上必要です。待機対象が無いと auto-merge は即時マージと同義になります。"
     }
   }
 }

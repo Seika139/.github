@@ -23,7 +23,7 @@
 - `dependabot/fetch-metadata` を commit SHA でピン留めし、任意コード実行点を排除
 - `allowed_update_types` の一致判定をカンマでアンカーし、部分一致による誤許可を防止
 - Terraform リポジトリモジュールで `allow_auto_merge` を指定可能に変更し、`repo-sync` に適用（public リポジトリ限定）
-- Terraform に `precondition` を追加し、`allow_auto_merge` を private リポジトリへ設定すること、および `required_status_checks` の無いリポジトリへ設定することを機械的に禁止
+- Terraform に `precondition` を追加し、`allow_auto_merge` を private リポジトリへ設定すること、および既定ブランチを保護する active な branch ruleset に `required_status_checks` が無いリポジトリへ設定することを機械的に禁止
 
 ## [1.3.0] - 2026-06-13
 

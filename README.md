@@ -56,11 +56,11 @@ Dependabot が作成した PR のうち CI が通ったものを自動マージ�
 前提条件:
 
 - 呼び出し側リポジトリの `Settings` > `General` > `Pull Requests` で `Allow auto-merge`（Terraform では `allow_auto_merge`）が有効になっていること
-- 呼び出し側リポジトリの ruleset に `required_status_checks` が 1 本以上設定されていること。required check が無いリポジトリで auto-merge を予約すると、待つ対象が存在しないため即時マージと同義になります
+- 呼び出し側リポジトリの既定ブランチを保護する active な branch ruleset に `required_status_checks` が 1 本以上設定されていること。required check が無いリポジトリで auto-merge を予約すると、待つ対象が存在しないため即時マージと同義になります
 
 **警告: private リポジトリには設定しないでください。** GitHub Free では private リポジトリの `allow_auto_merge` は API がエラーを返さず値を黙って捨てるため、Terraform が refresh のたびに差分を検出し `terraform plan` が恒久的に収束しなくなります。適用対象は public リポジトリに限定してください。
 
-上記 2 点の不変条件は `terraform/modules/repository/main.tf` の `github_repository.repo` に `precondition` として実装されており、`allow_auto_merge = true` を private リポジトリに設定した場合や、対象リポジトリの `rulesets` に `required_status_checks` を持つものが 1 つも無い場合は `terraform plan`/`apply` がエラーで停止します。README の警告文はこの機械的なチェックを補足するものです。
+上記 2 点の不変条件は `terraform/modules/repository/main.tf` の `github_repository.repo` に `precondition` として実装されており、`allow_auto_merge = true` を private リポジトリに設定した場合や、既定ブランチを保護する active な branch ruleset に `required_status_checks` を持つものが 1 つも無い場合は `terraform plan`/`apply` がエラーで停止します（`enforcement = "disabled"` の ruleset や、既定ブランチを対象にしない/除外する ruleset の check は数えません）。README の警告文はこの機械的なチェックを補足するものです。
 
 ## 関連ドキュメント
 
