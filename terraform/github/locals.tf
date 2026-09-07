@@ -205,8 +205,9 @@ locals {
     }
 
     "repo-sync" = {
-      description    = "ローカル git リポジトリを GitHub と自動同期する CLI（discord-notify 連携）"
-      default_branch = "main"
+      description      = "ローカル git リポジトリを GitHub と自動同期する CLI（discord-notify 連携）"
+      default_branch   = "main"
+      allow_auto_merge = true
       rulesets = {
         "main-protection" = {
           target           = "branch"

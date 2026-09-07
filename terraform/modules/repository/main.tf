@@ -47,6 +47,12 @@ variable "is_template" {
   default     = false
 }
 
+variable "allow_auto_merge" {
+  type        = bool
+  description = "Whether to allow auto-merge for pull requests. Only effective for public repositories on GitHub Free."
+  default     = false
+}
+
 variable "default_branch" {
   type        = string
   description = "The default branch of the repository."
@@ -104,6 +110,7 @@ resource "github_repository" "repo" {
   visibility             = var.visibility
   delete_branch_on_merge = true
   allow_update_branch    = true
+  allow_auto_merge       = var.allow_auto_merge
   has_issues             = true
   has_projects           = true
   has_wiki               = var.has_wiki
@@ -116,6 +123,16 @@ resource "github_repository" "repo" {
   # template も ignore_changes に含める
   lifecycle {
     ignore_changes = [allow_forking, template]
+
+    precondition {
+      condition     = !(var.allow_auto_merge && var.visibility == "private")
+      error_message = "allow_auto_merge は GitHub Free の private リポジトリでは API に無視され、Terraform が恒久 diff になります。public リポジトリにのみ指定してください。"
+    }
+
+    precondition {
+      condition     = !var.allow_auto_merge || length(flatten([for r in var.rulesets : r.required_status_checks])) > 0
+      error_message = "allow_auto_merge を有効にするには required_status_checks を 1 つ以上持つ ruleset が必要です。待機対象が無いと auto-merge は即時マージと同義になります。"
+    }
   }
 }
 

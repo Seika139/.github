@@ -49,6 +49,19 @@
   - Name: `PUSH_AND_RUN_WORKFLOW_TOKEN`
   - Value: 作成したトークン
 
+### Dependabot PR の自動マージ
+
+Dependabot が作成した PR のうち CI が通ったものを自動マージする reusable workflow です。[sample-reusable-workflows/dependabot-auto-merge.yml](sample-reusable-workflows/dependabot-auto-merge.yml) を呼び出し側リポジトリの `.github/workflows/` にそのまま配置してください。reusable workflow は呼び出し元から渡されたトークン権限を降格することしかできず昇格できないため、caller 側のワークフローファイルに `permissions: contents: write` / `pull-requests: write` を必ず記述する必要があります。
+
+前提条件:
+
+- 呼び出し側リポジトリの `Settings` > `General` > `Pull Requests` で `Allow auto-merge`（Terraform では `allow_auto_merge`）が有効になっていること
+- 呼び出し側リポジトリの ruleset に `required_status_checks` が 1 本以上設定されていること。required check が無いリポジトリで auto-merge を予約すると、待つ対象が存在しないため即時マージと同義になります
+
+**警告: private リポジトリには設定しないでください。** GitHub Free では private リポジトリの `allow_auto_merge` は API がエラーを返さず値を黙って捨てるため、Terraform が refresh のたびに差分を検出し `terraform plan` が恒久的に収束しなくなります。適用対象は public リポジトリに限定してください。
+
+上記 2 点の不変条件は `terraform/modules/repository/main.tf` の `github_repository.repo` に `precondition` として実装されており、`allow_auto_merge = true` を private リポジトリに設定した場合や、対象リポジトリの `rulesets` に `required_status_checks` を持つものが 1 つも無い場合は `terraform plan`/`apply` がエラーで停止します。README の警告文はこの機械的なチェックを補足するものです。
+
 ## 関連ドキュメント
 
 - [CHANGELOG.md](CHANGELOG.md)
