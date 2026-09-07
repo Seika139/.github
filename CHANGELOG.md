@@ -24,6 +24,8 @@
 - `allowed_update_types` の一致判定をカンマでアンカーし、部分一致による誤許可を防止
 - Terraform リポジトリモジュールで `allow_auto_merge` を指定可能に変更し、`repo-sync` に適用（public リポジトリ限定）
 - Terraform に `precondition` を追加し、`allow_auto_merge` を private リポジトリへ設定すること、および既定ブランチを保護する active な branch ruleset に `required_status_checks` が無いリポジトリへ設定することを機械的に禁止
+- Terraform の GitHub 管理対象に `random-cover-singer` を追加し、`main-protection` ruleset と `allow_auto_merge` を設定
+- `aws-cost-dashboard` に `main-protection` ruleset と `allow_auto_merge` を設定
 
 ## [1.3.0] - 2026-06-13
 

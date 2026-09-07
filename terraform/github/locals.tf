@@ -255,9 +255,31 @@ locals {
     }
 
     "aws-cost-dashboard" = {
-      description        = "AWS SSO 配下の複数アカウントのコストを可視化するローカルダッシュボード"
-      default_branch     = "main"
-      rulesets           = {}
+      description      = "AWS SSO 配下の複数アカウントのコストを可視化するローカルダッシュボード"
+      default_branch   = "main"
+      allow_auto_merge = true
+      rulesets = {
+        "main-protection" = {
+          target           = "branch"
+          enforcement      = "active"
+          include_refs     = ["~DEFAULT_BRANCH"]
+          exclude_refs     = []
+          deletion         = true
+          non_fast_forward = true
+          pull_request = {
+            required_approving_review_count   = 0
+            dismiss_stale_reviews_on_push     = true
+            required_review_thread_resolution = true
+          }
+          required_status_checks = [
+            "call-common-markdownlint / markdownlint",
+            "call-common-uv-qualify / setup",
+            "call-common-uv-qualify / lint-and-test",
+            "call-common-uv-qualify / mypy",
+            "call-common-yamllint / yamllint",
+          ]
+        }
+      }
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
@@ -401,6 +423,35 @@ locals {
       # GitHub Free では private repo の ruleset は利用不可 (Pro 以上必要)。
       rulesets = {}
       # systemd でローカル実行し GitHub Actions を使わないため secret は設定しない。
+      actions_secrets    = []
+      dependabot_secrets = []
+    }
+
+    "random-cover-singer" = {
+      description      = "アイマス MOIW2025 のセトリをランダム生成して共有する Next.js 製 Web アプリ"
+      homepage_url     = "https://moiw2025-random-setlist.vercel.app/"
+      default_branch   = "main"
+      allow_auto_merge = true
+      rulesets = {
+        "main-protection" = {
+          target           = "branch"
+          enforcement      = "active"
+          include_refs     = ["~DEFAULT_BRANCH"]
+          exclude_refs     = []
+          deletion         = true
+          non_fast_forward = true
+          pull_request = {
+            required_approving_review_count   = 0
+            dismiss_stale_reviews_on_push     = true
+            required_review_thread_resolution = true
+          }
+          required_status_checks = [
+            "lint",
+            "typecheck",
+            "build",
+          ]
+        }
+      }
       actions_secrets    = []
       dependabot_secrets = []
     }
