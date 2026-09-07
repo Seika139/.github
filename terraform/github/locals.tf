@@ -177,8 +177,9 @@ locals {
     }
 
     "discord-notify" = {
-      description    = "外部依存ゼロの Discord Webhook クライアント（Python 標準ライブラリのみ）"
-      default_branch = "main"
+      description      = "外部依存ゼロの Discord Webhook クライアント（Python 標準ライブラリのみ）"
+      default_branch   = "main"
+      allow_auto_merge = true
       rulesets = {
         "main-protection" = {
           target           = "branch"
@@ -197,6 +198,7 @@ locals {
             "call-common-uv-qualify / lint-and-test",
             "call-common-uv-qualify / mypy",
             "call-common-markdownlint / markdownlint",
+            "call-common-yamllint / yamllint",
           ]
         }
       }
@@ -236,10 +238,12 @@ locals {
     }
 
     "zipper" = {
-      description    = "パスワードベースの暗号化 ZIP アーカイバ（ファイル名・ディレクトリ名の暗号化対応）"
-      default_branch = "main"
-      has_wiki       = false
+      description      = "パスワードベースの暗号化 ZIP アーカイバ（ファイル名・ディレクトリ名の暗号化対応）"
+      default_branch   = "main"
+      has_wiki         = false
+      allow_auto_merge = true
       rulesets = {
+        # 恒久保護。bypass を設けず、管理者でも force-push とブランチ削除はできない
         "main-protection" = {
           target                 = "branch"
           enforcement            = "active"
@@ -248,6 +252,32 @@ locals {
           deletion               = true
           non_fast_forward       = true
           required_status_checks = []
+        }
+        # auto-merge の待機対象となる required check。直接 push の運用を残すため
+        # 管理者ロールのみ bypass を許可する。bypass は ruleset 単位で効くため、
+        # force-push 禁止と分離しないと non_fast_forward まで無効化されてしまう
+        "main-required-checks" = {
+          target           = "branch"
+          enforcement      = "active"
+          include_refs     = ["~DEFAULT_BRANCH"]
+          exclude_refs     = []
+          deletion         = false
+          non_fast_forward = false
+          required_status_checks = [
+            "call-common-uv-qualify / setup",
+            "call-common-uv-qualify / lint-and-test",
+            "call-common-uv-qualify / mypy",
+            "call-common-markdownlint / markdownlint",
+            "call-common-yamllint / yamllint",
+          ]
+          # Dependabot は bypass 対象ではないため、Dependabot PR は required check を満たす
+          bypass_actors = [
+            {
+              actor_id    = 5
+              actor_type  = "RepositoryRole"
+              bypass_mode = "always"
+            }
+          ]
         }
       }
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
@@ -361,12 +391,12 @@ locals {
     }
 
     "llm-runner" = {
-      description    = "claude / codex を CLI または SDK 経由で headless 実行する薄いランナー"
-      default_branch = "main"
-      has_wiki       = false
-      # CI 未導入のため zipper と同じ最小保護。CI 追加時に discord-notify 同等の
-      # required_status_checks を設定する
+      description      = "claude / codex を CLI または SDK 経由で headless 実行する薄いランナー"
+      default_branch   = "main"
+      has_wiki         = false
+      allow_auto_merge = true
       rulesets = {
+        # 恒久保護。bypass を設けず、管理者でも force-push とブランチ削除はできない
         "main-protection" = {
           target                 = "branch"
           enforcement            = "active"
@@ -375,6 +405,32 @@ locals {
           deletion               = true
           non_fast_forward       = true
           required_status_checks = []
+        }
+        # auto-merge の待機対象となる required check。直接 push の運用を残すため
+        # 管理者ロールのみ bypass を許可する。bypass は ruleset 単位で効くため、
+        # force-push 禁止と分離しないと non_fast_forward まで無効化されてしまう
+        "main-required-checks" = {
+          target           = "branch"
+          enforcement      = "active"
+          include_refs     = ["~DEFAULT_BRANCH"]
+          exclude_refs     = []
+          deletion         = false
+          non_fast_forward = false
+          required_status_checks = [
+            "call-common-uv-qualify / setup",
+            "call-common-uv-qualify / lint-and-test",
+            "call-common-uv-qualify / mypy",
+            "call-common-markdownlint / markdownlint",
+            "call-common-yamllint / yamllint",
+          ]
+          # Dependabot は bypass 対象ではないため、Dependabot PR は required check を満たす
+          bypass_actors = [
+            {
+              actor_id    = 5
+              actor_type  = "RepositoryRole"
+              bypass_mode = "always"
+            }
+          ]
         }
       }
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
