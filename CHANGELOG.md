@@ -26,6 +26,7 @@
 - Terraform に `precondition` を追加し、`allow_auto_merge` を private リポジトリへ設定すること、および既定ブランチを保護する active な branch ruleset に `required_status_checks` が無いリポジトリへ設定することを機械的に禁止
 - Terraform の GitHub 管理対象に `random-cover-singer` を追加し、`main-protection` ruleset と `allow_auto_merge` を設定
 - `aws-cost-dashboard` に `main-protection` ruleset と `allow_auto_merge` を設定
+- `zipper` / `llm-runner` / `discord-notify` に `allow_auto_merge` を設定し、`required_status_checks` を実測のチェック名 5 本 (`call-common-uv-qualify / setup` / `lint-and-test` / `mypy`、`call-common-markdownlint / markdownlint`、`call-common-yamllint / yamllint`) に揃えて Dependabot PR の auto-merge 対象に追加
 
 ## [1.3.0] - 2026-06-13
 
