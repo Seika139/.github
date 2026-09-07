@@ -242,17 +242,27 @@ locals {
       default_branch   = "main"
       has_wiki         = false
       allow_auto_merge = true
-      # required_status_checks は pull_request ルールとは独立にブランチ更新前のチェック成功を
-      # 要求するため、そのままでは main への直接 push も拒否される。
-      # 直接 push の運用を残すため管理者ロールを bypass_actors に指定している
       rulesets = {
+        # 恒久保護。bypass を設けず、管理者でも force-push とブランチ削除はできない
         "main-protection" = {
+          target                 = "branch"
+          enforcement            = "active"
+          include_refs           = ["~DEFAULT_BRANCH"]
+          exclude_refs           = []
+          deletion               = true
+          non_fast_forward       = true
+          required_status_checks = []
+        }
+        # auto-merge の待機対象となる required check。直接 push の運用を残すため
+        # 管理者ロールのみ bypass を許可する。bypass は ruleset 単位で効くため、
+        # force-push 禁止と分離しないと non_fast_forward まで無効化されてしまう
+        "main-required-checks" = {
           target           = "branch"
           enforcement      = "active"
           include_refs     = ["~DEFAULT_BRANCH"]
           exclude_refs     = []
-          deletion         = true
-          non_fast_forward = true
+          deletion         = false
+          non_fast_forward = false
           required_status_checks = [
             "call-common-uv-qualify / setup",
             "call-common-uv-qualify / lint-and-test",
@@ -385,17 +395,27 @@ locals {
       default_branch   = "main"
       has_wiki         = false
       allow_auto_merge = true
-      # CI 導入済み。required_status_checks は pull_request ルールとは独立にブランチ更新前の
-      # チェック成功を要求するため、そのままでは main への直接 push も拒否される。
-      # 直接 push の運用を残すため管理者ロールを bypass_actors に指定している
       rulesets = {
+        # 恒久保護。bypass を設けず、管理者でも force-push とブランチ削除はできない
         "main-protection" = {
+          target                 = "branch"
+          enforcement            = "active"
+          include_refs           = ["~DEFAULT_BRANCH"]
+          exclude_refs           = []
+          deletion               = true
+          non_fast_forward       = true
+          required_status_checks = []
+        }
+        # auto-merge の待機対象となる required check。直接 push の運用を残すため
+        # 管理者ロールのみ bypass を許可する。bypass は ruleset 単位で効くため、
+        # force-push 禁止と分離しないと non_fast_forward まで無効化されてしまう
+        "main-required-checks" = {
           target           = "branch"
           enforcement      = "active"
           include_refs     = ["~DEFAULT_BRANCH"]
           exclude_refs     = []
-          deletion         = true
-          non_fast_forward = true
+          deletion         = false
+          non_fast_forward = false
           required_status_checks = [
             "call-common-uv-qualify / setup",
             "call-common-uv-qualify / lint-and-test",
