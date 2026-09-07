@@ -80,6 +80,11 @@ import {
   id = "aws-cost-dashboard"
 }
 
+import {
+  to = module.repository["aws-cost-dashboard"].github_repository_ruleset.this["main-protection"]
+  id = "aws-cost-dashboard:22434121"
+}
+
 # ccusage-report
 import {
   to = module.repository["ccusage-report"].github_repository.repo
@@ -180,6 +185,22 @@ import {
 import {
   to = module.repository["llm-runner"].github_repository_ruleset.this["main-protection"]
   id = "llm-runner:17611949"
+}
+
+# random-cover-singer
+import {
+  to = module.repository["random-cover-singer"].github_repository.repo
+  id = "random-cover-singer"
+}
+
+import {
+  to = module.repository["random-cover-singer"].github_branch_default.default
+  id = "random-cover-singer"
+}
+
+import {
+  to = module.repository["random-cover-singer"].github_repository_ruleset.this["main-protection"]
+  id = "random-cover-singer:22434116"
 }
 
 # repo-sync
