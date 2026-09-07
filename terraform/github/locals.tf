@@ -242,6 +242,9 @@ locals {
       default_branch   = "main"
       has_wiki         = false
       allow_auto_merge = true
+      # required_status_checks は pull_request ルールとは独立にブランチ更新前のチェック成功を
+      # 要求するため、そのままでは main への直接 push も拒否される。
+      # 直接 push の運用を残すため管理者ロールを bypass_actors に指定している
       rulesets = {
         "main-protection" = {
           target           = "branch"
@@ -256,6 +259,14 @@ locals {
             "call-common-uv-qualify / mypy",
             "call-common-markdownlint / markdownlint",
             "call-common-yamllint / yamllint",
+          ]
+          # Dependabot は bypass 対象ではないため、Dependabot PR は required check を満たす
+          bypass_actors = [
+            {
+              actor_id    = 5
+              actor_type  = "RepositoryRole"
+              bypass_mode = "always"
+            }
           ]
         }
       }
@@ -374,8 +385,9 @@ locals {
       default_branch   = "main"
       has_wiki         = false
       allow_auto_merge = true
-      # CI 導入済み。required_status_checks を設定済みで、pull_request ルール (PR 必須化) は
-      # 運用を縛らないよう意図的に設けていない
+      # CI 導入済み。required_status_checks は pull_request ルールとは独立にブランチ更新前の
+      # チェック成功を要求するため、そのままでは main への直接 push も拒否される。
+      # 直接 push の運用を残すため管理者ロールを bypass_actors に指定している
       rulesets = {
         "main-protection" = {
           target           = "branch"
@@ -390,6 +402,14 @@ locals {
             "call-common-uv-qualify / mypy",
             "call-common-markdownlint / markdownlint",
             "call-common-yamllint / yamllint",
+          ]
+          # Dependabot は bypass 対象ではないため、Dependabot PR は required check を満たす
+          bypass_actors = [
+            {
+              actor_id    = 5
+              actor_type  = "RepositoryRole"
+              bypass_mode = "always"
+            }
           ]
         }
       }
