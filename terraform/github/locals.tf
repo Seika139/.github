@@ -315,12 +315,11 @@ locals {
     }
 
     "ccusage-report" = {
-      description    = "ccusage の JSON 出力をモデル別×日次に集計し、自己完結 HTML レポートを生成する個人ツール"
-      default_branch = "main"
-      # main への直接 push を許可するため PR 必須・required_status_checks は設けず、
-      # force-push 禁止 (non_fast_forward) とブランチ削除禁止 (deletion) のみ残す
-      # 個人ツールのため zipper / twin-layer-brain-template と同じ最小保護
+      description      = "ccusage の JSON 出力をモデル別×日次に集計し、自己完結 HTML レポートを生成する個人ツール"
+      default_branch   = "main"
+      allow_auto_merge = true
       rulesets = {
+        # 恒久保護。bypass を設けず、管理者でも force-push とブランチ削除はできない
         "main-protection" = {
           target                 = "branch"
           enforcement            = "active"
@@ -329,6 +328,33 @@ locals {
           deletion               = true
           non_fast_forward       = true
           required_status_checks = []
+        }
+        # auto-merge の待機対象となる required check。直接 push の運用を残すため
+        # 管理者ロールのみ bypass を許可する。bypass は ruleset 単位で効くため、
+        # force-push 禁止と分離しないと non_fast_forward まで無効化されてしまう
+        "main-required-checks" = {
+          target           = "branch"
+          enforcement      = "active"
+          include_refs     = ["~DEFAULT_BRANCH"]
+          exclude_refs     = []
+          deletion         = false
+          non_fast_forward = false
+          required_status_checks = [
+            "call-common-uv-qualify / setup",
+            "call-common-uv-qualify / lint-and-test",
+            "call-common-uv-qualify / mypy",
+            "call-common-markdownlint / markdownlint",
+            "call-common-yamllint / yamllint",
+            "call-common-shellcheck / shellcheck",
+          ]
+          # Dependabot は bypass 対象ではないため、Dependabot PR は required check を満たす
+          bypass_actors = [
+            {
+              actor_id    = 5
+              actor_type  = "RepositoryRole"
+              bypass_mode = "always"
+            }
+          ]
         }
       }
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
