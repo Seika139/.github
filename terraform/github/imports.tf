@@ -47,6 +47,16 @@ import {
   id = "asobi-ticket-monitor"
 }
 
+import {
+  to = module.repository["asobi-ticket-monitor"].github_actions_secret.this["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+  id = "asobi-ticket-monitor:PUSH_AND_RUN_WORKFLOW_TOKEN"
+}
+
+import {
+  to = module.repository["asobi-ticket-monitor"].github_dependabot_secret.this["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+  id = "asobi-ticket-monitor:PUSH_AND_RUN_WORKFLOW_TOKEN"
+}
+
 # auto-invest
 import {
   to = module.repository["auto-invest"].github_repository.repo
@@ -106,6 +116,16 @@ import {
   id = "ccusage-report:23412683"
 }
 
+import {
+  to = module.repository["ccusage-report"].github_actions_secret.this["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+  id = "ccusage-report:PUSH_AND_RUN_WORKFLOW_TOKEN"
+}
+
+import {
+  to = module.repository["ccusage-report"].github_dependabot_secret.this["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+  id = "ccusage-report:PUSH_AND_RUN_WORKFLOW_TOKEN"
+}
+
 # claw-knowledge
 import {
   to = module.repository["claw-knowledge"].github_repository.repo
@@ -126,6 +146,16 @@ import {
 import {
   to = module.repository["cookie-clicker"].github_branch_default.default
   id = "cookie-clicker"
+}
+
+import {
+  to = module.repository["cookie-clicker"].github_actions_secret.this["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+  id = "cookie-clicker:PUSH_AND_RUN_WORKFLOW_TOKEN"
+}
+
+import {
+  to = module.repository["cookie-clicker"].github_dependabot_secret.this["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+  id = "cookie-clicker:PUSH_AND_RUN_WORKFLOW_TOKEN"
 }
 
 # discord-notify
