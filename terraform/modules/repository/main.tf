@@ -138,7 +138,15 @@ resource "github_repository" "repo" {
   # 削除する PATCH に副作用で allow_forking が同梱されエラーになるため、
   # template も ignore_changes に含める
   lifecycle {
-    ignore_changes = [allow_forking, template]
+    # GitHub/provider may report security settings differently across plans.
+    # Keep existing repository security configuration unchanged until explicitly
+    # managed, including for repositories created by this module.
+    ignore_changes = [
+      allow_forking,
+      template,
+      vulnerability_alerts,
+      ignore_vulnerability_alerts_during_read,
+    ]
 
     precondition {
       condition     = !(var.allow_auto_merge && var.visibility == "private")

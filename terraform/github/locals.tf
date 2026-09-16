@@ -537,5 +537,28 @@ locals {
       actions_secrets    = []
       dependabot_secrets = []
     }
+
+    "aru-aru-monitor" = {
+      description    = "FARO AruAruMembers の抽選・優待を定期監視して Discord 通知と対象抽選への自動応募を行う Playwright ツール"
+      visibility     = "private"
+      has_wiki       = false
+      default_branch = "main"
+      # GitHub Free では private repo の ruleset は利用不可 (Pro 以上必要)。
+      rulesets = {}
+      # systemd でローカル実行し GitHub Actions を使わないため secret は設定しない。
+      actions_secrets    = []
+      dependabot_secrets = []
+    }
+
+    "music-wizard" = {
+      description    = "鼻歌や音楽アイデアを MIDI 化し、AI と自分の音源で曲へ育てる Mac 向け作曲環境"
+      visibility     = "private"
+      has_wiki       = false
+      default_branch = "main"
+      # GitHub Free では private repo の ruleset は利用不可 (Pro 以上必要)。
+      rulesets           = {}
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+    }
   }
 }

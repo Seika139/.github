@@ -101,6 +101,11 @@ import {
   id = "ccusage-report:18161753"
 }
 
+import {
+  to = module.repository["ccusage-report"].github_repository_ruleset.this["main-required-checks"]
+  id = "ccusage-report:23412683"
+}
+
 # claw-knowledge
 import {
   to = module.repository["claw-knowledge"].github_repository.repo
@@ -187,6 +192,11 @@ import {
   id = "llm-runner:17611949"
 }
 
+import {
+  to = module.repository["llm-runner"].github_repository_ruleset.this["main-required-checks"]
+  id = "llm-runner:22480574"
+}
+
 # random-cover-singer
 import {
   to = module.repository["random-cover-singer"].github_repository.repo
@@ -201,6 +211,17 @@ import {
 import {
   to = module.repository["random-cover-singer"].github_repository_ruleset.this["main-protection"]
   id = "random-cover-singer:22434116"
+}
+
+# music-wizard
+import {
+  to = module.repository["music-wizard"].github_repository.repo
+  id = "music-wizard"
+}
+
+import {
+  to = module.repository["music-wizard"].github_branch_default.default
+  id = "music-wizard"
 }
 
 # repo-sync
@@ -331,4 +352,9 @@ import {
 import {
   to = module.repository["zipper"].github_repository_ruleset.this["main-protection"]
   id = "zipper:15469687"
+}
+
+import {
+  to = module.repository["zipper"].github_repository_ruleset.this["main-required-checks"]
+  id = "zipper:22480577"
 }
