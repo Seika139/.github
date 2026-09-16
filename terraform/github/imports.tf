@@ -224,6 +224,16 @@ import {
   id = "music-wizard"
 }
 
+import {
+  to = module.repository["music-wizard"].github_actions_secret.this["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+  id = "music-wizard:PUSH_AND_RUN_WORKFLOW_TOKEN"
+}
+
+import {
+  to = module.repository["music-wizard"].github_dependabot_secret.this["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+  id = "music-wizard:PUSH_AND_RUN_WORKFLOW_TOKEN"
+}
+
 # repo-sync
 import {
   to = module.repository["repo-sync"].github_repository.repo

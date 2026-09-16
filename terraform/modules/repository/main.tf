@@ -222,6 +222,12 @@ resource "github_actions_secret" "this" {
   repository      = github_repository.repo.name
   secret_name     = each.key
   plaintext_value = var.actions_secrets[each.key]
+
+  # GitHub does not expose existing secret plaintext, so never overwrite it
+  # during adoption or later plans. New secrets still receive their initial value.
+  lifecycle {
+    ignore_changes = [plaintext_value]
+  }
 }
 
 resource "github_dependabot_secret" "this" {
@@ -229,4 +235,10 @@ resource "github_dependabot_secret" "this" {
   repository      = github_repository.repo.name
   secret_name     = each.key
   plaintext_value = var.dependabot_secrets[each.key]
+
+  # GitHub does not expose existing secret plaintext, so never overwrite it
+  # during adoption or later plans. New secrets still receive their initial value.
+  lifecycle {
+    ignore_changes = [plaintext_value]
+  }
 }
