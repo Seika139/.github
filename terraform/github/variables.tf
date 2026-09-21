@@ -3,7 +3,7 @@ variable "DOTENV_PRIVATE_KEY" {
   sensitive = true
 
   validation {
-    condition     = length(var.DOTENV_PRIVATE_KEY) > 0
+    condition     = length(trimspace(var.DOTENV_PRIVATE_KEY)) > 0
     error_message = "DOTENV_PRIVATE_KEY must not be empty (see 2026-09-15 incident: empty value overwrote GitHub secrets)."
   }
 }
@@ -13,7 +13,7 @@ variable "PUSH_AND_RUN_WORKFLOW_TOKEN" {
   sensitive = true
 
   validation {
-    condition     = length(var.PUSH_AND_RUN_WORKFLOW_TOKEN) > 0
+    condition     = length(trimspace(var.PUSH_AND_RUN_WORKFLOW_TOKEN)) > 0
     error_message = "PUSH_AND_RUN_WORKFLOW_TOKEN must not be empty (see 2026-09-15 incident: empty value overwrote GitHub secrets)."
   }
 }
