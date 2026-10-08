@@ -30,6 +30,13 @@ jobs:
   create-release-branch:
     name: Create release branch and tag
     runs-on: ubuntu-latest
+    # 同一リポジトリのリリース実行を直列化し、並列実行時の tag/branch 競合を防ぐ
+    # ジョブレベルに置くのは、workflow_call 時に呼び出し元の group と衝突するデッドロックを避けるため
+    # 待機中の run も最大 100 件まで保持して順に処理する (queue: max)
+    concurrency:
+      group: update-version-${{ github.repository }}
+      cancel-in-progress: false
+      queue: max
     env:
       VERSION_BUMP: ${{ inputs.version_bump }}
       PUSH_AND_RUN_WORKFLOW_TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
@@ -157,8 +164,12 @@ jobs:
             exit 1
           fi
           git remote set-url origin "https://x-access-token:${PUSH_AND_RUN_WORKFLOW_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          # 自分の push が成功した ref だけをクリーンアップ対象にする。
+          # 同時実行で push に負けた側が、先行 run の ref を消さないため。
           git push origin "$RELEASE_BRANCH"
+          echo "RELEASE_BRANCH_PUSHED=true" >> "$GITHUB_ENV"
           git push origin "$RELEASE_TAG"
+          echo "RELEASE_TAG_PUSHED=true" >> "$GITHUB_ENV"
 
       - name: Create pull request
         env:
@@ -218,7 +229,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Cleanup tag on failure
-        if: failure()
+        if: failure() && env.RELEASE_TAG_PUSHED == 'true'
         continue-on-error: true
         env:
           PUSH_AND_RUN_WORKFLOW_TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
@@ -251,7 +262,7 @@ jobs:
           fi
 
       - name: Cleanup branch on failure
-        if: failure()
+        if: failure() && env.RELEASE_BRANCH_PUSHED == 'true'
         continue-on-error: true
         env:
           PUSH_AND_RUN_WORKFLOW_TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
