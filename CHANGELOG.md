@@ -17,6 +17,14 @@
 
 ## [Unreleased]
 
+### Added
+
+- Renovate の週次 PR で Terraform CLI の更新を確認可能に変更
+
+### Changed
+
+- Terraform CLI のバージョンを mise で `latest` から v1.16.5 に固定
+
 ### Fixed
 
 - Update Version ワークフローが、重複や同時実行で失敗した際に、既存または先行して実行中のリリースのタグ/ブランチを削除してしまう問題を、同一リポジトリのリリース実行を直列化し、待機中のリリースも破棄せず順に処理することで修正
@@ -35,7 +43,6 @@
 - `aws-cost-dashboard` に `main-protection` ruleset と `allow_auto_merge` を設定
 - `zipper` / `llm-runner` / `discord-notify` に `allow_auto_merge` を設定し、`required_status_checks` を実測のチェック名 5 本 (`call-common-uv-qualify / setup` / `lint-and-test` / `mypy`、`call-common-markdownlint / markdownlint`、`call-common-yamllint / yamllint`) に揃えて Dependabot PR の auto-merge 対象に追加
 - [#106](https://github.com/Seika139/.github/issues/106) HCP Terraform を state 保存先に追加し、複数の PC/VPS から同じ Terraform state を共有可能に変更
-- Terraform CLI を mise で v1.16.5 に固定し、Renovate の週次 PR で更新を確認可能に変更
 
 ### Fixed
 
