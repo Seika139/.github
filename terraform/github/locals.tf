@@ -103,7 +103,17 @@ locals {
     "pkm-framework" = {
       description        = "Framework shared by PKM repositories"
       default_branch     = "main"
-      rulesets           = {}
+      rulesets = {
+        "main-protection" = {
+          target                 = "branch"
+          enforcement            = "active"
+          include_refs           = ["~DEFAULT_BRANCH"]
+          exclude_refs           = []
+          deletion               = true
+          non_fast_forward       = true
+          required_status_checks = []
+        }
+      }
       actions_secrets    = []
       dependabot_secrets = []
     }
