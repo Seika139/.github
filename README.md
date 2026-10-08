@@ -31,6 +31,82 @@
 
 ## セットアップ
 
+### Terraform state の共有（HCP Terraform）
+
+Terraform の state は HCP Terraform に保存し、plan/apply は各 PC または VPS 上の Terraform CLI から実行します。HCP Terraform の `github-repositories` workspace で `Settings` > `General` > `Execution Mode` が `Local` になっていることを確認してください。このモードでは HCP Terraform は state を保管し、Terraform の実行は各端末上で行われます。
+
+各実行環境で一度 `terraform login` を実行して HCP Terraform にログインしてください。認証は実行ユーザーの Terraform CLI credentials に保存されるため、PC と VPS のそれぞれで必要です。GitHub provider が使う認証情報や dotenvx の secrets は、これまでどおり各 PC/VPS 側で管理します。Local execution mode では HCP workspace variables は使われません。GitHub provider の認証情報を HCP workspace に登録しないでください。
+
+### Token の Expiration
+
+トークンの漏洩リスクを低減するためにはトークンの有効期間を短くすることが推奨されます。
+`terraform login` でトークンがない場合、またはトークンの有効期限が切れている場合はトークンを再作成します。
+
+#### 初回のみ: VPS の最新 state を HCP に移行する
+
+初回移行の前に、VPS の Terraform 実行を止め、HCP の `seika139-github/github-repositories` workspace が空で、Execution Mode が `Local` であることを確認してください。VPS の `terraform/github/terraform.tfstate` をリポジトリ外の安全な場所にバックアップしてください。state には秘密情報が含まれる場合があるため、バックアップを Git に追加したり共有場所へ不用意に置いたりしないでください。
+
+state 移行時は、VPS で state を操作していた Terraform CLI と同じバージョンを使ってください。VPS の `~/programs/.github` で `terraform version` を実行してバージョンを確認し、表示されたバージョンを `X.Y.Z` に指定して `mise use --pin --path mise.toml terraform@X.Y.Z` を実行します。`mise.toml` の Terraform バージョンがその値になったことを確認し、`mise install` と `terraform version` で実行バージョンが一致することを確認してください。これは共有設定の変更なので、PC 側でも同じ `mise.toml` と Terraform バージョンを使います。
+
+VPS で state をバックアップします。`~/programs/.github` で次を実行してください。バックアップ先はリポジトリ外で、所有ユーザー以外が読めない権限になります。
+
+```sh
+set -e
+umask 077
+mkdir -p "$HOME/.local/state"
+backup_dir="$HOME/.local/state/github-repositories-hcp-migration-$(date +%Y%m%d%H%M%S)-$$"
+mkdir "$backup_dir"
+test -f terraform/github/terraform.tfstate
+for path in \
+  terraform/github/terraform.tfstate \
+  terraform/github/terraform.tfstate.backup \
+  terraform/github/terraform.tfstate.d; do
+  if [ -e "$path" ]; then
+    cp -R -p "$path" "$backup_dir/"
+  fi
+done
+if [ -e terraform/github/.terraform/terraform.tfstate ]; then
+  mkdir -p "$backup_dir/.terraform"
+  cp -p terraform/github/.terraform/terraform.tfstate "$backup_dir/.terraform/"
+fi
+chmod -R go-rwx "$backup_dir"
+```
+
+VPS 上で `terraform login` が済んでいることを確認し、`~/programs/.github` で次を実行します。通常の `init` は既存 local state を HCP workspace に移行するか対話で確認します。初回移行より前に `mise run init` を実行しないでください。
+
+```sh
+terraform -chdir=terraform/github init
+```
+
+Terraform がローカル state を HCP workspace にコピーするか尋ねたら、接続先 organization/workspace と移行元が VPS の最新 state であることを確認してから移行を承認してください。移行後は `terraform -chdir=terraform/github state list` のリソースアドレスが想定どおりか照合し、`mise run terra-plan` で plan を確認してください。このタスクは dotenvx を通じて GitHub provider 用のローカル secrets を渡します。大量の予期しない create/destroy など不審な差分があれば、apply せずに停止して state と workspace の接続先を調べてください。
+
+#### 2台目以降の実行環境
+
+HCP への初回 state 移行が完了したら、他の各 PC/VPS で `terraform login` を行い、古い local state と backend metadata をリポジトリ外の権限を限定した場所に退避してから `mise run init` を実行してください。各端末で `~/programs/.github` に移動し、以下を実行すると state ファイル、バックアップ、local workspace state、および `.terraform` の backend metadata を同じユーザーだけが読めるディレクトリーに移せます。
+
+```sh
+set -e
+umask 077
+mkdir -p "$HOME/.local/state"
+backup_dir="$HOME/.local/state/github-repositories-before-hcp-$(date +%Y%m%d%H%M%S)-$$"
+mkdir "$backup_dir"
+for path in \
+  terraform/github/terraform.tfstate \
+  terraform/github/terraform.tfstate.backup \
+  terraform/github/terraform.tfstate.d; do
+  if [ -e "$path" ]; then
+    mv "$path" "$backup_dir/"
+  fi
+done
+if [ -e terraform/github/.terraform/terraform.tfstate ]; then
+  mkdir -p "$backup_dir/.terraform"
+  mv terraform/github/.terraform/terraform.tfstate "$backup_dir/.terraform/"
+fi
+chmod -R go-rwx "$backup_dir"
+```
+
+退避先を確認した後、各端末で `mise run init` を実行してください。この task は通常の `terraform init` を行うため、local state が残っていると移行確認が表示されることがあります。VPS の最新 state を移行済みの HCP workspace に接続する端末では、古い state を移行元として選ばないよう、必ず先に退避してください。Terraform の実行前に dotenvx/GitHub provider 用 secrets がその端末で利用できることも確認してください。
+
 ### 共通ワークフローの利用
 
 他のリポジトリで当リポジトリのワークフローを利用するための設定です。
