@@ -1,0 +1,21 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "enabledManagers": ["mise"],
+  "timezone": "Asia/Tokyo",
+  "packageRules": [
+    {
+      "description": "Disable mise updates by default",
+      "matchManagers": ["mise"],
+      "enabled": false
+    },
+    {
+      "description": "Update only the Terraform CLI weekly",
+      "matchManagers": ["mise"],
+      "matchPackageNames": ["hashicorp/terraform"],
+      "enabled": true,
+      "schedule": ["* * * * 1"],
+      "automerge": false
+    }
+  ]
+}

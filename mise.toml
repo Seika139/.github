@@ -1,6 +1,6 @@
 [tools]
 dotenvx = "latest"
-terraform = "latest"
+terraform = "1.16.5"
 
 [tasks.init]
 description = "Terraform と開発環境を初期化する"
