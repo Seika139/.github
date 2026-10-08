@@ -93,6 +93,9 @@ jobs:
             echo "Tag $RELEASE_TAG は既に存在します。"
             exit 1
           fi
+          # 重複チェック通過後にこのランが作成する refs だけをクリーンアップ対象にする。
+          # 常に削除すると、重複で失敗した際に既存のタグ/ブランチまで消してしまうため。
+          echo "RELEASE_REFS_OWNED=true" >> "$GITHUB_ENV"
 
       - name: Create branch from main
         run: |
@@ -218,7 +221,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Cleanup tag on failure
-        if: failure()
+        if: failure() && env.RELEASE_REFS_OWNED == 'true'
         continue-on-error: true
         env:
           PUSH_AND_RUN_WORKFLOW_TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
@@ -251,7 +254,7 @@ jobs:
           fi
 
       - name: Cleanup branch on failure
-        if: failure()
+        if: failure() && env.RELEASE_REFS_OWNED == 'true'
         continue-on-error: true
         env:
           PUSH_AND_RUN_WORKFLOW_TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
