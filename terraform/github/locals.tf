@@ -122,7 +122,7 @@ locals {
           ]
         }
       }
-      actions_secrets    = []
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
       dependabot_secrets = []
     }
 
@@ -143,7 +143,7 @@ locals {
           required_status_checks = []
         }
       }
-      actions_secrets    = []
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
       dependabot_secrets = []
     }
 
