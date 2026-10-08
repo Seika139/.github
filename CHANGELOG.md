@@ -27,6 +27,11 @@
 - Terraform の GitHub 管理対象に `random-cover-singer` を追加し、`main-protection` ruleset と `allow_auto_merge` を設定
 - `aws-cost-dashboard` に `main-protection` ruleset と `allow_auto_merge` を設定
 - `zipper` / `llm-runner` / `discord-notify` に `allow_auto_merge` を設定し、`required_status_checks` を実測のチェック名 5 本 (`call-common-uv-qualify / setup` / `lint-and-test` / `mypy`、`call-common-markdownlint / markdownlint`、`call-common-yamllint / yamllint`) に揃えて Dependabot PR の auto-merge 対象に追加
+- [#106](https://github.com/Seika139/.github/issues/106) HCP Terraform を state 保存先に追加し、複数の PC/VPS から同じ Terraform state を共有可能に変更
+
+### Fixed
+
+- [#106](https://github.com/Seika139/.github/issues/106) apply 時の plan 表示と適用を単一の `terraform apply` にまとめ、確認中の再計画による競合を解消
 
 ## [1.3.0] - 2026-06-13
 

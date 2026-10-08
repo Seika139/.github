@@ -3,7 +3,7 @@ dotenvx = "latest"
 terraform = "latest"
 
 [tasks.init]
-description = "初期化処理（仮想環境を作成し、依存関係をインストール）"
+description = "Terraform と開発環境を初期化する"
 shell = "bash -c"
 quiet = true
 run = '''
@@ -13,12 +13,8 @@ set -euo pipefail
 find ./mise -name "*.sh" -exec chmod +x {} \;
 mise run venv
 
-if terraform -chdir=terraform/github validate > /dev/null 2>&1; then
-  echo "Terraform is Valid and Initialized."
-else
-  echo "Initializing Terraform..."
-  dotenvx run -- terraform -chdir=terraform/github init
-fi
+echo "Initializing Terraform..."
+dotenvx run -- terraform -chdir=terraform/github init
 
 if [ -f "{{env.MISE_CONFIG_ROOT}}/.env" ]; then
   set -a
