@@ -7,7 +7,8 @@
 
 ## Tagged Releases
 
-- [unreleased](https://github.com/Seika139/.github/compare/v1.3.0...HEAD)
+- [unreleased](https://github.com/Seika139/.github/compare/v1.4.0...HEAD)
+- [1.4.0](https://github.com/Seika139/.github/compare/v1.3.0...v1.4.0)
 - [1.3.0](https://github.com/Seika139/.github/compare/v1.2.0...v1.3.0)
 - [1.2.0](https://github.com/Seika139/.github/compare/v1.1.1...v1.2.0)
 - [1.1.1](https://github.com/Seika139/.github/compare/v1.1.0...v1.1.1)
@@ -15,6 +16,8 @@
 - [1.0.0](https://github.com/Seika139/.github/releases/tag/v1.0.0)
 
 ## [Unreleased]
+
+## [1.4.0] - 2026-10-09
 
 ### Added
 
