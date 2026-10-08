@@ -111,7 +111,15 @@ locals {
           exclude_refs           = []
           deletion               = true
           non_fast_forward       = true
-          required_status_checks = []
+          pull_request = {
+            required_approving_review_count   = 0
+            dismiss_stale_reviews_on_push     = true
+            required_review_thread_resolution = true
+          }
+          required_status_checks = [
+            "call-common-uv-qualify / setup",
+            "call-common-uv-qualify / lint-and-test",
+          ]
         }
       }
       actions_secrets    = []
