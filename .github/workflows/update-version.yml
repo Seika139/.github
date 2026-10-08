@@ -93,9 +93,6 @@ jobs:
             echo "Tag $RELEASE_TAG は既に存在します。"
             exit 1
           fi
-          # 重複チェック通過後にこのランが作成する refs だけをクリーンアップ対象にする。
-          # 常に削除すると、重複で失敗した際に既存のタグ/ブランチまで消してしまうため。
-          echo "RELEASE_REFS_OWNED=true" >> "$GITHUB_ENV"
 
       - name: Create branch from main
         run: |
@@ -160,8 +157,12 @@ jobs:
             exit 1
           fi
           git remote set-url origin "https://x-access-token:${PUSH_AND_RUN_WORKFLOW_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          # 自分の push が成功した ref だけをクリーンアップ対象にする。
+          # 同時実行で push に負けた側が、先行 run の ref を消さないため。
           git push origin "$RELEASE_BRANCH"
+          echo "RELEASE_BRANCH_PUSHED=true" >> "$GITHUB_ENV"
           git push origin "$RELEASE_TAG"
+          echo "RELEASE_TAG_PUSHED=true" >> "$GITHUB_ENV"
 
       - name: Create pull request
         env:
@@ -221,7 +222,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Cleanup tag on failure
-        if: failure() && env.RELEASE_REFS_OWNED == 'true'
+        if: failure() && env.RELEASE_TAG_PUSHED == 'true'
         continue-on-error: true
         env:
           PUSH_AND_RUN_WORKFLOW_TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
@@ -254,7 +255,7 @@ jobs:
           fi
 
       - name: Cleanup branch on failure
-        if: failure() && env.RELEASE_REFS_OWNED == 'true'
+        if: failure() && env.RELEASE_BRANCH_PUSHED == 'true'
         continue-on-error: true
         env:
           PUSH_AND_RUN_WORKFLOW_TOKEN: ${{ secrets.PUSH_AND_RUN_WORKFLOW_TOKEN }}
