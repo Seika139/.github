@@ -100,6 +100,53 @@ locals {
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
 
+    "pkm-framework" = {
+      description        = "Framework shared by PKM repositories"
+      default_branch     = "main"
+      rulesets = {
+        "main-protection" = {
+          target                 = "branch"
+          enforcement            = "active"
+          include_refs           = ["~DEFAULT_BRANCH"]
+          exclude_refs           = []
+          deletion               = true
+          non_fast_forward       = true
+          pull_request = {
+            required_approving_review_count   = 0
+            dismiss_stale_reviews_on_push     = true
+            required_review_thread_resolution = true
+          }
+          required_status_checks = [
+            "call-common-uv-qualify / setup",
+            "call-common-uv-qualify / lint-and-test",
+          ]
+        }
+      }
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = []
+    }
+
+    "pkm-storage" = {
+      description        = "Reusable template for PKM storage repositories"
+      visibility         = "public"
+      is_template        = true
+      has_wiki           = false
+      default_branch     = "main"
+      rulesets = {
+        "main-protection" = {
+          target                 = "branch"
+          enforcement            = "active"
+          include_refs           = ["~DEFAULT_BRANCH"]
+          exclude_refs           = []
+          deletion               = true
+          non_fast_forward       = true
+          required_status_checks = []
+        }
+      }
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = []
+    }
+
     "twin-layer-brain-template" = {
       description    = "Template for twin-layer brain (SQLite fast search + LLM self-expanding wiki)"
       visibility     = "public"

@@ -264,6 +264,28 @@ import {
   id = "music-wizard:PUSH_AND_RUN_WORKFLOW_TOKEN"
 }
 
+# pkm-framework
+import {
+  to = module.repository["pkm-framework"].github_repository.repo
+  id = "pkm-framework"
+}
+
+import {
+  to = module.repository["pkm-framework"].github_branch_default.default
+  id = "pkm-framework"
+}
+
+# pkm-storage
+import {
+  to = module.repository["pkm-storage"].github_repository.repo
+  id = "pkm-storage"
+}
+
+import {
+  to = module.repository["pkm-storage"].github_branch_default.default
+  id = "pkm-storage"
+}
+
 # repo-sync
 import {
   to = module.repository["repo-sync"].github_repository.repo

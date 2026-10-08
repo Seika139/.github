@@ -18,6 +18,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Terraform の管理対象に `pkm-framework` と `pkm-storage` を public リポジトリとして追加し、両リポジトリの main branch に削除・force-push を防ぐ基本保護を設定。`pkm-framework` は PR を必須にし、共有 UV qualify の setup / lint-and-test を必須チェックに設定。`pkm-storage` は再利用可能なテンプレートに設定
+
 ## [1.5.0] - 2026-10-09
 
 ### Added
