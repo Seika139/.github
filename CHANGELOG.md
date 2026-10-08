@@ -18,6 +18,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Terraform の管理対象に `pkm-framework` と `pkm-storage` を public リポジトリとして追加し、`pkm-storage` を再利用可能なテンプレートに設定
+
 ## [1.5.0] - 2026-10-09
 
 ### Added
