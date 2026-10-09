@@ -152,6 +152,17 @@ locals {
       dependabot_secrets = []
     }
 
+    "pkm-storage-alpha" = {
+      description        = "Private personal PKM based on pkm-storage template"
+      visibility         = "private"
+      is_template        = false
+      has_wiki           = false
+      default_branch     = "main"
+      rulesets           = {}
+      actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
+      dependabot_secrets = []
+    }
+
     "twin-layer-brain-template" = {
       description    = "Template for twin-layer brain (SQLite fast search + LLM self-expanding wiki)"
       visibility     = "public"
