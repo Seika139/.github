@@ -156,6 +156,7 @@ locals {
       description        = "Private personal PKM based on pkm-storage template"
       visibility         = "private"
       is_template        = false
+      auto_init          = true
       has_wiki           = false
       default_branch     = "main"
       rulesets           = {}
