@@ -47,6 +47,12 @@ variable "is_template" {
   default     = false
 }
 
+variable "auto_init" {
+  type        = bool
+  description = "Whether to initialize the repository with an initial commit."
+  default     = false
+}
+
 variable "allow_auto_merge" {
   type        = bool
   description = "Whether to allow auto-merge for pull requests. Only effective for public repositories on GitHub Free."
@@ -127,6 +133,7 @@ resource "github_repository" "repo" {
   delete_branch_on_merge = true
   allow_update_branch    = true
   allow_auto_merge       = var.allow_auto_merge
+  auto_init              = var.auto_init
   has_issues             = true
   has_projects           = true
   has_wiki               = var.has_wiki

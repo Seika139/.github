@@ -9,6 +9,7 @@ module "repository" {
   visibility       = try(each.value.visibility, "public")
   has_wiki         = try(each.value.has_wiki, true)
   is_template      = try(each.value.is_template, false)
+  auto_init        = try(each.value.auto_init, false)
   allow_auto_merge = try(each.value.allow_auto_merge, false)
   default_branch   = try(each.value.default_branch, "main")
   rulesets         = each.value.rulesets
