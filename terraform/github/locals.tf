@@ -33,9 +33,43 @@ locals {
     }
 
     "dotfiles" = {
-      description        = "dotfiles"
-      default_branch     = "main"
-      rulesets           = {}
+      description      = "dotfiles"
+      default_branch   = "main"
+      allow_auto_merge = true
+      rulesets = {
+        # 既存の恒久保護。admin を含めてブランチ削除と force-push を禁止する。
+        "main" = {
+          target                 = "branch"
+          enforcement            = "active"
+          include_refs           = ["~DEFAULT_BRANCH"]
+          exclude_refs           = []
+          deletion               = true
+          non_fast_forward       = true
+          required_status_checks = []
+        }
+        # auto-merge の待機対象となる required check。bypass は管理者ロールのみ。
+        # Renovate / Dependabot は bypass せず、PR 上でチェックを通す。
+        "main-required-checks" = {
+          target           = "branch"
+          enforcement      = "active"
+          include_refs     = ["~DEFAULT_BRANCH"]
+          exclude_refs     = []
+          deletion         = false
+          non_fast_forward = false
+          required_status_checks = [
+            "call-common-markdownlint / markdownlint",
+            "call-common-yamllint / yamllint",
+            "shellcheck",
+          ]
+          bypass_actors = [
+            {
+              actor_id    = 5
+              actor_type  = "RepositoryRole"
+              bypass_mode = "always"
+            }
+          ]
+        }
+      }
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }

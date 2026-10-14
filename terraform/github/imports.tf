@@ -185,6 +185,11 @@ import {
   id = "dotfiles"
 }
 
+import {
+  to = module.repository["dotfiles"].github_repository_ruleset.this["main"]
+  id = "dotfiles:24425258"
+}
+
 # fried-shrimp
 import {
   to = module.repository["fried-shrimp"].github_repository.repo
