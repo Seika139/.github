@@ -425,3 +425,14 @@ import {
   to = module.repository["zipper"].github_repository_ruleset.this["main-required-checks"]
   id = "zipper:22480577"
 }
+
+# anzu-flower-stand-2026
+import {
+  to = module.repository["anzu-flower-stand-2026"].github_repository.repo
+  id = "anzu-flower-stand-2026"
+}
+
+import {
+  to = module.repository["anzu-flower-stand-2026"].github_branch_default.default
+  id = "anzu-flower-stand-2026"
+}

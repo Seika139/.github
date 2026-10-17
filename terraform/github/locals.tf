@@ -658,5 +658,15 @@ locals {
       actions_secrets    = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
+
+    "anzu-flower-stand-2026" = {
+      description        = "双葉杏フラスタ2026のデザインイラストを3D／2.5Dモデル化し、花屋との打ち合わせで具体的なイメージを共有するためのプロジェクト"
+      visibility         = "private"
+      has_wiki           = false
+      default_branch     = "main"
+      rulesets           = {}
+      actions_secrets    = []
+      dependabot_secrets = []
+    }
   }
 }
