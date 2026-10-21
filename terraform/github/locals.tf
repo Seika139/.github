@@ -660,7 +660,8 @@ locals {
     }
 
     "anzu-flower-stand-2026" = {
-      description        = "双葉杏フラスタ2026のデザインイラストを3D／2.5Dモデル化し、花屋との打ち合わせで具体的なイメージを共有するためのプロジェクト"
+      description        = "双葉杏フラスタ2026のデザインを3Dモデルまたは2.5Dモデルにして、花屋との打ち合わせに使うためのリポジトリ"
+      homepage_url       = "https://anzu-flower-stand-2026.vercel.app"
       visibility         = "private"
       has_wiki           = false
       default_branch     = "main"

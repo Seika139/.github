@@ -2,7 +2,7 @@ terraform {
   required_providers {
     github = {
       source  = "integrations/github"
-      version = "~> 6.0"
+      version = ">= 6.12.0, < 7.0.0"
     }
   }
 }
@@ -138,16 +138,13 @@ resource "github_repository" "repo" {
   has_projects           = true
   has_wiki               = var.has_wiki
   is_template            = var.is_template
-  vulnerability_alerts   = true
 
   # 個人リポジトリでは allow_forking の変更が API エラーになるため無視する
   # template から派生作成された repo を初回 import する際、template ブロックを
   # 削除する PATCH に副作用で allow_forking が同梱されエラーになるため、
-  # template も ignore_changes に含める
+  # template も ignore_changes に含める。脆弱性アラートは専用 resource で管理し、
+  # github_repository の旧属性による差分は無視する。
   lifecycle {
-    # GitHub/provider may report security settings differently across plans.
-    # Keep existing repository security configuration unchanged until explicitly
-    # managed, including for repositories created by this module.
     ignore_changes = [
       allow_forking,
       template,
@@ -165,6 +162,18 @@ resource "github_repository" "repo" {
       error_message = "allow_auto_merge を有効にするには、既定ブランチを保護する active な branch ruleset に required_status_checks が 1 つ以上必要です。待機対象が無いと auto-merge は即時マージと同義になります。"
     }
   }
+}
+
+resource "github_repository_vulnerability_alerts" "this" {
+  repository = github_repository.repo.name
+  enabled    = true
+}
+
+resource "github_repository_dependabot_security_updates" "this" {
+  repository = github_repository.repo.name
+  enabled    = true
+
+  depends_on = [github_repository_vulnerability_alerts.this]
 }
 
 resource "github_branch_default" "default" {

@@ -125,6 +125,19 @@ chmod -R go-rwx "$backup_dir"
   - Name: `PUSH_AND_RUN_WORKFLOW_TOKEN`
   - Value: 作成したトークン
 
+### Dependabot alerts
+
+[`terraform/modules/repository/main.tf`](terraform/modules/repository/main.tf) を使う全リポジトリで Dependabot alerts と Dependabot security updates を有効にします。alerts の有効化 API は依存関係グラフも有効にします。security updates は alerts の後に設定されます。`terraform/github/security.tf` の `moved` block は、先に有効化した `anzu-flower-stand-2026` の alerts resource を module 内の新しいアドレスへ移し、作成し直さず state 管理を継続します。
+
+Terraform provider で管理するのは、Dependabot alerts、依存関係グラフ、および脆弱性修正用の security updates です。以下は現在の provider で同じようには管理できないか、リポジトリ内の設定ファイルが必要なため、この Terraform 設定では有効化していません。
+
+- Malware alerts、automatic dependency submission、Dependabot の auto-triage / 自動 dismiss ルール
+- Grouped security updates。グループ化は各リポジトリの `dependabot.yml` に設定してください。
+- Dependabot version updates。各リポジトリに `.github/dependabot.yml` を追加し、対象 ecosystem と更新間隔を定義してください。
+- 有料プランが必要な private repository 向け Code Security / Secret Protection
+
+GitHub provider の旧 `github_repository.vulnerability_alerts` 属性は `ignore_changes` の対象に残し、専用 resource と重複して管理しないようにしています。
+
 ### Dependabot PR の自動マージ
 
 Dependabot が作成した PR のうち CI が通ったものを自動マージする reusable workflow です。[sample-reusable-workflows/dependabot-auto-merge.yml](sample-reusable-workflows/dependabot-auto-merge.yml) を呼び出し側リポジトリの `.github/workflows/` にそのまま配置してください。reusable workflow は呼び出し元から渡されたトークン権限を降格することしかできず昇格できないため、caller 側のワークフローファイルに `permissions: contents: write` / `pull-requests: write` を必ず記述する必要があります。
