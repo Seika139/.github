@@ -33,9 +33,10 @@ locals {
     }
 
     "codex-usage" = {
-      description    = "A cross-platform CLI for reading current Codex rate limits."
-      visibility     = "public"
-      default_branch = "main"
+      description      = "A cross-platform CLI for reading current Codex rate limits."
+      visibility       = "public"
+      default_branch   = "main"
+      allow_auto_merge = true
       rulesets = {
         # Admin を含めて main の削除と force-push を禁止する。
         "main" = {
