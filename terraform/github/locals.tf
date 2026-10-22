@@ -32,6 +32,50 @@ locals {
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN", "DOTENV_PRIVATE_KEY"]
     }
 
+    "codex-usage" = {
+      description      = "A cross-platform CLI for reading current Codex rate limits."
+      visibility       = "public"
+      default_branch   = "main"
+      allow_auto_merge = true
+      rulesets = {
+        # Admin を含めて main の削除と force-push を禁止する。
+        "main" = {
+          target                 = "branch"
+          enforcement            = "active"
+          include_refs           = ["~DEFAULT_BRANCH"]
+          exclude_refs           = []
+          deletion               = true
+          non_fast_forward       = true
+          required_status_checks = []
+        }
+        # required checks の bypass は admin のみ。Dependabot も通常どおり checks を通す。
+        "main-required-checks" = {
+          target           = "branch"
+          enforcement      = "active"
+          include_refs     = ["~DEFAULT_BRANCH"]
+          exclude_refs     = []
+          deletion         = false
+          non_fast_forward = false
+          required_status_checks = [
+            "call-common-uv-qualify / setup",
+            "call-common-uv-qualify / lint-and-test",
+            "lock-and-format",
+            "call-common-yamllint / yamllint",
+            "call-common-shellcheck / shellcheck",
+          ]
+          bypass_actors = [
+            {
+              actor_id    = 5
+              actor_type  = "RepositoryRole"
+              bypass_mode = "always"
+            }
+          ]
+        }
+      }
+      actions_secrets    = []
+      dependabot_secrets = []
+    }
+
     "dotfiles" = {
       description      = "dotfiles"
       default_branch   = "main"

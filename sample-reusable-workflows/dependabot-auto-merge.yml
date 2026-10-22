@@ -2,7 +2,8 @@
 name: Dependabot Auto Merge (reusable)
 
 "on":
-  pull_request:
+  # Dependabot の pull_request token は read-only のため、PR head を実行しない前提で write 権限を使う。
+  pull_request_target:
 
 permissions:
   contents: write # auto-merge の予約に必要
