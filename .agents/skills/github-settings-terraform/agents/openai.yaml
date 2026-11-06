@@ -1,0 +1,3 @@
+interface:
+  display_name: "GitHub 設定と Terraform"
+  short_description: "GitHub の設定を Terraform 経由で変更"
