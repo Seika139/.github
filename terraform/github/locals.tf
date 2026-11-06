@@ -178,6 +178,16 @@ locals {
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
 
+    "worklog" = {
+      description        = "PCで実施した作業をMarkdownで記録するための個人用リポジトリ"
+      visibility         = "private"
+      has_wiki           = false
+      default_branch     = "main"
+      rulesets           = {}
+      actions_secrets    = []
+      dependabot_secrets = []
+    }
+
     "pkm-framework" = {
       description    = "Framework shared by PKM repositories"
       default_branch = "main"
