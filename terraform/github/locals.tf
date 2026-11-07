@@ -535,6 +535,18 @@ locals {
       dependabot_secrets = ["PUSH_AND_RUN_WORKFLOW_TOKEN"]
     }
 
+    "sbi-api" = {
+      description    = "SBI証券口座の操作を機能別APIとして提供するローカルサービス"
+      visibility     = "private"
+      has_wiki       = false
+      default_branch = "main"
+      auto_init      = true
+      # GitHub Free では private repo の ruleset は利用不可 (Pro 以上必要)。
+      rulesets           = {}
+      actions_secrets    = []
+      dependabot_secrets = []
+    }
+
     "auto-invest-portfolio" = {
       description    = "auto-invest の運用状態 (現金 / 保有銘柄 / 取引ログ) を YAML で保持する private データリポジトリ"
       visibility     = "private"
