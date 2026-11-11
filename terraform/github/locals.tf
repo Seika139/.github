@@ -188,6 +188,17 @@ locals {
       dependabot_secrets = []
     }
 
+    "video-studio" = {
+      description        = "撮影素材と演出指示からHyperFramesで動画を制作するローカル環境"
+      visibility         = "private"
+      has_wiki           = false
+      default_branch     = "main"
+      auto_init          = true
+      rulesets           = {}
+      actions_secrets    = []
+      dependabot_secrets = []
+    }
+
     "pkm-framework" = {
       description    = "Framework shared by PKM repositories"
       default_branch = "main"
